@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use these models or results, please cite the paper below."
+title: "kokoro-82m-coreml-size-tiers"
+authors:
+  - family-names: Singh
+    given-names: Mohit
+repository-code: "https://github.com/qmohitsingh/kokoro-82m-coreml-size-tiers"
+url: "https://huggingface.co/qmohits/kokoro-82m-coreml-size-tiers"
+license: Apache-2.0
+preferred-citation:
+  type: generic
+  title: "Compact On-Device Speech Synthesis with Open-Weight Neural TTS: A Case Study of Kokoro-82M"
+  authors:
+    - family-names: Singh
+      given-names: Mohit
+  year: 2026
+  notes: "Preprint; arXiv ID to be added on submission."

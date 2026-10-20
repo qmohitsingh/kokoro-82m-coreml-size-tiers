@@ -249,3 +249,17 @@ Objective check on a Mac:
 ## Future work
 
 Target about **12.1 MB of compiled models** with the same speed and sound gates. Also: more voices and devices, and an English phoneme frontend.
+
+## Citation
+
+The study behind these tiers is described in the paper *Compact On-Device Speech Synthesis with Open-Weight Neural TTS: A Case Study of Kokoro-82M* (preprint; arXiv ID to be added on submission). GitHub also renders `CITATION.cff` as a "Cite this repository" button.
+
+```bibtex
+@misc{singh2026kokorocoreml,
+  title  = {Compact On-Device Speech Synthesis with Open-Weight Neural TTS: A Case Study of Kokoro-82M},
+  author = {Singh, Mohit},
+  year   = {2026},
+  note   = {Preprint},
+  url    = {https://github.com/qmohitsingh/kokoro-82m-coreml-size-tiers}
+}
+```
