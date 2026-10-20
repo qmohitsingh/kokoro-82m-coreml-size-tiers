@@ -1,0 +1,6 @@
+// Copy to Signing.local.xcconfig (git-ignored) to build for a physical iPhone.
+// Only needed for device installs; unsigned builds need no signing settings.
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+CODE_SIGN_STYLE = Automatic
+// A bundle id your team can sign. The default is com.kokorobench.KokoroBench.
+PRODUCT_BUNDLE_IDENTIFIER = com.example.KokoroBench

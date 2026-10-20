@@ -1,0 +1,4938 @@
+{
+  "schema": 2,
+  "description": "Index of the Kokoro size-lab Core ML tiers. Each folder is self-contained and has its own manifest.json (packages, compiled sizes, interfaces, compute units, metrics, hashes). Only tiers that passed speed and sound are included.",
+  "upstream": {
+    "repo": "hexgrad/Kokoro-82M",
+    "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+    "kokoro-v1_0.pth_sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4",
+    "voices/af_heart.pt_sha256": "0ab5709b8ffab19bfd849cd11d98f75b60af7733253ad0d67b12382a102cb4ff"
+  },
+  "recommended_tier": "25mb",
+  "tiers": {
+    "500mb": {
+      "folder": "500mb/",
+      "experiment": "S002",
+      "label": "Baseline (at most 500 MB)",
+      "status": "passed",
+      "compiled_models_total_bytes": 327680270,
+      "shapes": "fixed",
+      "packages": [
+        "kokoro_text_fp32.mlpackage",
+        "kokoro_prosody_fp32.mlpackage",
+        "kokoro_pitch_fp32.mlpackage",
+        "kokoro_decoder_fp32.mlpackage",
+        "kokoro_generator_fp32.mlpackage"
+      ],
+      "recommended": false,
+      "manifest": "500mb/manifest.json"
+    },
+    "200mb": {
+      "folder": "200mb/",
+      "experiment": "S007",
+      "label": "Stretch (at most 200 MB)",
+      "status": "passed",
+      "compiled_models_total_bytes": 168492559,
+      "shapes": "fixed",
+      "packages": [
+        "kokoro_text_fp32.mlpackage",
+        "kokoro_prosody_fp32.mlpackage",
+        "kokoro_pitch_fp32.mlpackage",
+        "kokoro_decoder_int8.mlpackage",
+        "kokoro_generator_int8.mlpackage"
+      ],
+      "recommended": false,
+      "manifest": "200mb/manifest.json"
+    },
+    "100mb": {
+      "folder": "100mb/",
+      "experiment": "S011",
+      "label": "Aggressive (at most 100 MB)",
+      "status": "passed",
+      "compiled_models_total_bytes": 96203053,
+      "shapes": "fixed",
+      "packages": [
+        "kokoro_text-embedding-int8.mlpackage",
+        "kokoro_prosody-text-int4.mlpackage",
+        "kokoro_pitch_int8.mlpackage",
+        "kokoro_decoder-all-int4.mlpackage",
+        "kokoro_generator-all-int4.mlpackage"
+      ],
+      "recommended": false,
+      "manifest": "100mb/manifest.json"
+    },
+    "50mb": {
+      "folder": "50mb/",
+      "experiment": "S014 mixed8",
+      "label": "Research (at most 50 MB)",
+      "status": "passed",
+      "compiled_models_total_bytes": 42582199,
+      "shapes": "flexible",
+      "packages": [
+        "kokoro_student_w256.mlpackage",
+        "kokoro_pitch_int8_flex.mlpackage",
+        "kokoro_decoder_int4_flex.mlpackage",
+        "kokoro_generator_mixed8_flex.mlpackage"
+      ],
+      "recommended": false,
+      "manifest": "50mb/manifest.json"
+    },
+    "25mb": {
+      "folder": "25mb/",
+      "experiment": "S017",
+      "label": "Ultra (at most 25 MB)",
+      "status": "passed",
+      "compiled_models_total_bytes": 24267607,
+      "shapes": "flexible",
+      "packages": [
+        "kokoro_student_w256.mlpackage",
+        "kokoro_pitch_int8_flex.mlpackage",
+        "kokoro_s015_vocoder_int8.mlpackage"
+      ],
+      "recommended": true,
+      "manifest": "25mb/manifest.json"
+    }
+  },
+  "checkpoints": {
+    "description": "Trained PyTorch checkpoints behind the student packages, so conversion can be re-run without retraining (s014_convert_student.py, s015_convert.py). Not needed to run the tiers.",
+    "files": [
+      {
+        "file": "checkpoints/student-w256-b-step10000.pt",
+        "bytes": 12039760,
+        "sha256": "191eba7351f6d694a5e3f63c222a706a1efa7dbecfe92e0ab790b8e95f797d47",
+        "role": "S014 width-256 student, the source of kokoro_student_w256: model weights, config, step, eval. No optimizer state."
+      },
+      {
+        "file": "checkpoints/vocoder-v4-prune-step10000.pt",
+        "bytes": 46058379,
+        "sha256": "32b0318618362ddcf63ca98b2581f1d656f997ecc07537fa7ccd15b4c8109745",
+        "role": "S015 v4-prune step 10000, the source of kokoro_s015_vocoder_int8: vocoder weights and config, plus the unused S015 pitch student (the shipped pitch model is the Kokoro int8 package). No optimizer or discriminator state."
+      }
+    ]
+  },
+  "tiers_detail": {
+    "500mb": {
+      "tier": "500mb",
+      "label": "Baseline (at most 500 MB)",
+      "experiment": "S002",
+      "status": "passed",
+      "shapes": "fixed",
+      "shape_note": "This tier is built from fixed-shape multifunction packages. It supports ONLY the five frozen benchmark shapes (token functions t56, t110, t237, t260, t280 and frame functions f146, f275, f567, f614, f633). Arbitrary text lengths are not supported. Flexible token and frame lengths start at the 50mb tier (S014).",
+      "recommended": false,
+      "recipe": "Kokoro-82M v1.0 split into five stages, fp32, with the five shapes of each stage sharing one weight file (coremltools save_multifunction).",
+      "size_measurement": "compiled_logical_bytes = sum of file sizes (os.stat st_size) of the .mlmodelc that `xcrun coremlcompiler compile` produces from the package, the same bytes Xcode puts in the app. package_sha256 = sha256 over every file sorted by relative path: relative path bytes then file bytes. coremldata.bin inside a compile can differ by a few bytes between runs.",
+      "packages": [
+        {
+          "name": "kokoro_text_fp32",
+          "path": "kokoro_text_fp32.mlpackage",
+          "role": "text encoder, fp32, 5 token functions",
+          "compiled_logical_bytes": 25469752,
+          "package_logical_bytes": 25458881,
+          "package_sha256": "f09db88e189aff9def36126da44f2af4b5e412087af56ac4abbe3e1afbd27024",
+          "compute_units": "all",
+          "functions": [
+            "t56",
+            "t110",
+            "t237",
+            "t260",
+            "t280"
+          ],
+          "interfaces": {
+            "t56": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    56
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                }
+              ]
+            },
+            "t110": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    110
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                }
+              ]
+            },
+            "t237": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    237
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                }
+              ]
+            },
+            "t260": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    260
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                }
+              ]
+            },
+            "t280": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    280
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 367256,
+              "sha256": "22718f7191b37ccb16f3a470bf0cf9b583166b77666a7d77f8d11a724a3da983"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 25091008,
+              "sha256": "9c8629cee1f1bed054ca086103d2762828e121f470ca786581a15b8d3835e1be"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "f4d0fe3993c908b96a6c0197a3a33df51155bff6b2a02c78188aa8042b121fac"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_prosody_fp32",
+          "path": "kokoro_prosody_fp32.mlpackage",
+          "role": "duration and prosody text features, fp32",
+          "compiled_logical_bytes": 53708437,
+          "package_logical_bytes": 53678602,
+          "package_sha256": "d5786b42dc1369e79c3930fb9357bb7178ae31e117f58dd4e5c4703639366fc5",
+          "compute_units": "all",
+          "functions": [
+            "t56",
+            "t110",
+            "t237",
+            "t260",
+            "t280"
+          ],
+          "interfaces": {
+            "t56": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    56
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    56,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    56,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                }
+              ]
+            },
+            "t110": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    110
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    110,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    110,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                }
+              ]
+            },
+            "t237": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    237
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    237,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    237,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                }
+              ]
+            },
+            "t260": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    260
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    260,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    260,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                }
+              ]
+            },
+            "t280": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    280
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    280,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    280,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 180577,
+              "sha256": "933724a22d74792c813c80247a4dc2771422f12cd61ac30b465121ccf269585a"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 53497408,
+              "sha256": "6e601f81523f9b603821b1804ef8ed2f1e0a730a1dc018349098740ca68e0c3e"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "dc7e9fa2872d1511283adcbc86eac5a15442e8bb83437bc5a0a29a2e4f985b0d"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_pitch_fp32",
+          "path": "kokoro_pitch_fp32.mlpackage",
+          "role": "pitch and energy predictor, fp32",
+          "compiled_logical_bytes": 33959547,
+          "package_logical_bytes": 33930509,
+          "package_sha256": "2abc5ff48772124349d92bcf3ab7803f69862d1be052259fb3c5c1a3834fe3db",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    146
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    275
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    567
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    614
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    633
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 283044,
+              "sha256": "c879efb79a458636de7c7b60cc53e8c07a47eabf33a8c2111ef64df1269d2b74"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 33646848,
+              "sha256": "f012f264e044627dc611a0f5e2814e3a2dd18aaa31f36403811b29e350e5a124"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "e421ec8c2d99e79fcd7903e0e175044357cfb5b0cd9b781f5b3fb41f6d375b7e"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_decoder_fp32",
+          "path": "kokoro_decoder_fp32.mlpackage",
+          "role": "decoder body, fp32",
+          "compiled_logical_bytes": 134687955,
+          "package_logical_bytes": 134658501,
+          "package_sha256": "37962f51c9004351bae2b5c8857112ad310fd74029b0f08c27bd15321f55bf9a",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    146
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    292
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    275
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    550
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    567
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1134
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    614
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1228
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    633
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1266
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 253724,
+              "sha256": "d7c51fc250f4d4ce918b6e2351de9a46c7e2e510f2017396523dc4f641a985c5"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 134404160,
+              "sha256": "d0a02243b9b57113ad1345fbfde2771f2fb520f02d2469599f61a80cf2303a73"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "8e729b9bf381ad93e5fee9ca47d07d69d807960447196bf67d491a6ce092eda0"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_generator_fp32",
+          "path": "kokoro_generator_fp32.mlpackage",
+          "role": "waveform generator, fp32",
+          "compiled_logical_bytes": 79854579,
+          "package_logical_bytes": 79774620,
+          "package_sha256": "f90947cc122e64664e8120e4e33ea57e734fd39793137a889ff02019112d114a",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    292
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    17521
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    17521
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    17521
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    550
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    33001
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    33001
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    33001
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1134
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    68041
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    68041
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    68041
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1228
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    73681
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    73681
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    73681
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1266
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    75961
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    75961
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    75961
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 1084659,
+              "sha256": "eacca17dbeea74729d006a5390f5568a1b56db9ef16a745772c8abcd294c68f1"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 78689344,
+              "sha256": "9fba89a022ac551637d9a4efb42a35e2d641dd0d42fcec9ee4b3f2267f3e3258"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "dbbfd5e643f43de691b130af3ee4a59a300ff5e6adc7efc0dc967c75b66e08cc"
+            }
+          ]
+        }
+      ],
+      "compiled_models_total_bytes": 327680270,
+      "voice": null,
+      "style_rows": {
+        "source": "benchmark/inputs/bench.json (GitHub repository)",
+        "sha256": "df09590b1c648c7c4f2e97a6321742791a35f5c67e8645f24040a87ead277ba5",
+        "note": "This tier's harness takes the af_heart style row for each frozen benchmark case from bench.json; it does not load a voice table, so no voice file is shipped in this folder. The stored rows equal the af_heart voice-table rows for every frozen benchmark case (asserted by scripts/s017_bench_inputs.py)."
+      },
+      "metrics": {
+        "speed": {
+          "gate_median_rtf_max": 0.3,
+          "source": "benchmark/results/size-shared-speed.json",
+          "median_rtf": {
+            "3s": 0.17,
+            "7s": 0.198,
+            "15s": 0.207,
+            "30s": 0.215
+          },
+          "p90_rtf": {
+            "3s": 0.172,
+            "7s": 0.2,
+            "15s": 0.21,
+            "30s": 0.218
+          },
+          "thermal_state": {
+            "3s": "nominal",
+            "7s": "nominal",
+            "15s": "nominal",
+            "30s": "nominal"
+          },
+          "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
+          "result": "passed"
+        },
+        "sound": {
+          "source": "benchmark/results/size-shared-listen.json",
+          "test": "four-length blind pairs (3, 7, 15, 30 s) vs reference Kokoro af_heart",
+          "pairs": 4,
+          "ties": 4,
+          "reference_preferred": 0,
+          "candidate_preferred": 0,
+          "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)"
+        },
+        "stability": {
+          "source": "benchmark/results/size-shared-stability.json",
+          "finished": true,
+          "elapsed_seconds": 3607,
+          "loops": 323,
+          "engine": "coreml",
+          "result": "passed"
+        },
+        "mac_chain_check_3s": {
+          "text": "fp32 Core ML chain vs PyTorch, frozen 3s: waveform SNR 43.397 dB, DTW log-mel 0.018 dB",
+          "source": "docs/EXPERIMENT_LOG.md (S011 section, 3-second chain table)"
+        },
+        "harness_app_size": "Release unsigned .app 330,883,802 bytes (S002 log) (recorded, not graded)"
+      },
+      "harness": {
+        "project_spec": "benchmark/ios/project-s002.yml",
+        "swift_sources": "benchmark/ios/KokoroSize",
+        "resources_dir": "benchmark/ios/Resources-S002",
+        "swift_compile_flag": "S002",
+        "download": "python scripts/download_models.py qmohits/kokoro-82m-coreml-size-tiers --tier 500mb",
+        "models_dir_after_download": "artifacts/hf/500mb"
+      }
+    },
+    "200mb": {
+      "tier": "200mb",
+      "label": "Stretch (at most 200 MB)",
+      "experiment": "S007",
+      "status": "passed",
+      "shapes": "fixed",
+      "shape_note": "This tier is built from fixed-shape multifunction packages. It supports ONLY the five frozen benchmark shapes (token functions t56, t110, t237, t260, t280 and frame functions f146, f275, f567, f614, f633). Arbitrary text lengths are not supported. Flexible token and frame lengths start at the 50mb tier (S014).",
+      "recommended": false,
+      "recipe": "S002 stack with the decoder and generator weights quantized to int8 (per output channel, weight-only). Text, prosody and pitch stay fp32.",
+      "size_measurement": "compiled_logical_bytes = sum of file sizes (os.stat st_size) of the .mlmodelc that `xcrun coremlcompiler compile` produces from the package, the same bytes Xcode puts in the app. package_sha256 = sha256 over every file sorted by relative path: relative path bytes then file bytes. coremldata.bin inside a compile can differ by a few bytes between runs.",
+      "packages": [
+        {
+          "name": "kokoro_text_fp32",
+          "path": "kokoro_text_fp32.mlpackage",
+          "role": "text encoder, fp32, 5 token functions",
+          "compiled_logical_bytes": 25469752,
+          "package_logical_bytes": 25458881,
+          "package_sha256": "f09db88e189aff9def36126da44f2af4b5e412087af56ac4abbe3e1afbd27024",
+          "compute_units": "all",
+          "functions": [
+            "t56",
+            "t110",
+            "t237",
+            "t260",
+            "t280"
+          ],
+          "interfaces": {
+            "t56": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    56
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                }
+              ]
+            },
+            "t110": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    110
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                }
+              ]
+            },
+            "t237": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    237
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                }
+              ]
+            },
+            "t260": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    260
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                }
+              ]
+            },
+            "t280": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    280
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 367256,
+              "sha256": "22718f7191b37ccb16f3a470bf0cf9b583166b77666a7d77f8d11a724a3da983"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 25091008,
+              "sha256": "9c8629cee1f1bed054ca086103d2762828e121f470ca786581a15b8d3835e1be"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "f4d0fe3993c908b96a6c0197a3a33df51155bff6b2a02c78188aa8042b121fac"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_prosody_fp32",
+          "path": "kokoro_prosody_fp32.mlpackage",
+          "role": "duration and prosody text features, fp32",
+          "compiled_logical_bytes": 53708437,
+          "package_logical_bytes": 53678602,
+          "package_sha256": "d5786b42dc1369e79c3930fb9357bb7178ae31e117f58dd4e5c4703639366fc5",
+          "compute_units": "all",
+          "functions": [
+            "t56",
+            "t110",
+            "t237",
+            "t260",
+            "t280"
+          ],
+          "interfaces": {
+            "t56": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    56
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    56,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    56,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                }
+              ]
+            },
+            "t110": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    110
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    110,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    110,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                }
+              ]
+            },
+            "t237": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    237
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    237,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    237,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                }
+              ]
+            },
+            "t260": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    260
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    260,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    260,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                }
+              ]
+            },
+            "t280": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    280
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    280,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    280,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 180577,
+              "sha256": "933724a22d74792c813c80247a4dc2771422f12cd61ac30b465121ccf269585a"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 53497408,
+              "sha256": "6e601f81523f9b603821b1804ef8ed2f1e0a730a1dc018349098740ca68e0c3e"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "dc7e9fa2872d1511283adcbc86eac5a15442e8bb83437bc5a0a29a2e4f985b0d"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_pitch_fp32",
+          "path": "kokoro_pitch_fp32.mlpackage",
+          "role": "pitch and energy predictor, fp32",
+          "compiled_logical_bytes": 33959547,
+          "package_logical_bytes": 33930509,
+          "package_sha256": "2abc5ff48772124349d92bcf3ab7803f69862d1be052259fb3c5c1a3834fe3db",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    146
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    275
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    567
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    614
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    633
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 283044,
+              "sha256": "c879efb79a458636de7c7b60cc53e8c07a47eabf33a8c2111ef64df1269d2b74"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 33646848,
+              "sha256": "f012f264e044627dc611a0f5e2814e3a2dd18aaa31f36403811b29e350e5a124"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "e421ec8c2d99e79fcd7903e0e175044357cfb5b0cd9b781f5b3fb41f6d375b7e"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_decoder_int8",
+          "path": "kokoro_decoder_int8.mlpackage",
+          "role": "decoder body, weight-only int8",
+          "compiled_logical_bytes": 34151789,
+          "package_logical_bytes": 34117352,
+          "package_sha256": "1d4e8dae7b000f2daaf8d955ff3be0ab8602a9356867e2500073ff6bce8982d3",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    146
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    292
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    275
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    550
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    567
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1134
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    614
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1228
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    633
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1266
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 272319,
+              "sha256": "419b94685a70c5fa87f07ef2c6f089d49b47530c7c56d90bab602ec6d1f1363c"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 33844416,
+              "sha256": "5749219f3abfede6117add0671c80981509d9a2cbeceff40dd6ed0c935f60692"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "3a3844d7e202c87d8a5cba22e7b122b5a116d61edfcceae1634f6a18299f3c29"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_generator_int8",
+          "path": "kokoro_generator_int8.mlpackage",
+          "role": "waveform generator, weight-only int8",
+          "compiled_logical_bytes": 21203034,
+          "package_logical_bytes": 21104871,
+          "package_sha256": "b54a60a82b4ff3efc98b6bb4b777a8846be25610c56d7574856f2ede1e26a659",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    292
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    17521
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    17521
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    17521
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    550
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    33001
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    33001
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    33001
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1134
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    68041
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    68041
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    68041
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1228
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    73681
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    73681
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    73681
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1266
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    75961
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    75961
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    75961
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 1154214,
+              "sha256": "21eab6fcabd8ce952cf4ee845adbf7e64a5e09bb41c15d640de3d86c5b19b31f"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 19950040,
+              "sha256": "a4c48818378bfc7d229ed84c7026bdcf8b1c36647cbf7ab04cad19a8626e5749"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "fbdffcf6efd8fd69271043b2e830e06208760dee5837323d5f4cd1c8494ea9f6"
+            }
+          ]
+        }
+      ],
+      "compiled_models_total_bytes": 168492559,
+      "voice": null,
+      "style_rows": {
+        "source": "benchmark/inputs/bench.json (GitHub repository)",
+        "sha256": "df09590b1c648c7c4f2e97a6321742791a35f5c67e8645f24040a87ead277ba5",
+        "note": "This tier's harness takes the af_heart style row for each frozen benchmark case from bench.json; it does not load a voice table, so no voice file is shipped in this folder. The stored rows equal the af_heart voice-table rows for every frozen benchmark case (asserted by scripts/s017_bench_inputs.py)."
+      },
+      "metrics": {
+        "speed": {
+          "gate_median_rtf_max": 0.3,
+          "source": "benchmark/results/size-int8-dg-speed.json",
+          "median_rtf": {
+            "3s": 0.185,
+            "7s": 0.211,
+            "15s": 0.223,
+            "30s": 0.269
+          },
+          "p90_rtf": {
+            "3s": 0.188,
+            "7s": 0.216,
+            "15s": 0.227,
+            "30s": 0.278
+          },
+          "thermal_state": {
+            "3s": "fair",
+            "7s": "fair",
+            "15s": "serious",
+            "30s": "serious"
+          },
+          "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
+          "result": "passed"
+        },
+        "sound": {
+          "source": "benchmark/results/size-int8-dg-listen.json",
+          "test": "four-length blind pairs (3, 7, 15, 30 s) vs reference Kokoro af_heart",
+          "pairs": 4,
+          "ties": 4,
+          "reference_preferred": 0,
+          "candidate_preferred": 0,
+          "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)"
+        },
+        "stability": {
+          "source": "benchmark/results/size-int8-dg-stability.json",
+          "finished": true,
+          "elapsed_seconds": 3625,
+          "loops": 146,
+          "engine": "coreml",
+          "result": "passed"
+        },
+        "memory": {
+          "source": "benchmark/results/size-int8-dg-memory.json",
+          "peak_synthesis_bytes": 1144901248,
+          "note": "app process phys_footprint sampler; recorded, not graded"
+        },
+        "mac_chain_check_3s": {
+          "text": "frozen 3s chain vs PyTorch: waveform SNR 30.767 dB, DTW log-mel 0.192 dB; DTW log-mel per chunk 3s 0.192, 7s 0.220, 15s 0.252, 30s part 1 0.268, part 2 0.265",
+          "source": "docs/EXPERIMENT_LOG.md (S011 section, 3-second chain and Level tables)"
+        },
+        "harness_app_size": "Release unsigned .app 171,696,317 bytes (S007 log) (recorded, not graded)"
+      },
+      "harness": {
+        "project_spec": "benchmark/ios/project-s007.yml",
+        "swift_sources": "benchmark/ios/KokoroSize",
+        "resources_dir": "benchmark/ios/Resources-S007",
+        "swift_compile_flag": "S007",
+        "download": "python scripts/download_models.py qmohits/kokoro-82m-coreml-size-tiers --tier 200mb",
+        "models_dir_after_download": "artifacts/hf/200mb"
+      }
+    },
+    "100mb": {
+      "tier": "100mb",
+      "label": "Aggressive (at most 100 MB)",
+      "experiment": "S011",
+      "status": "passed",
+      "shapes": "fixed",
+      "shape_note": "This tier is built from fixed-shape multifunction packages. It supports ONLY the five frozen benchmark shapes (token functions t56, t110, t237, t260, t280 and frame functions f146, f275, f567, f614, f633). Arbitrary text lengths are not supported. Flexible token and frame lengths start at the 50mb tier (S014).",
+      "recommended": false,
+      "recipe": "Int8 text embeddings, int4 prosody text branch, int8 pitch, int4 decoder and generator. Activations and I/O stay fp32.",
+      "size_measurement": "compiled_logical_bytes = sum of file sizes (os.stat st_size) of the .mlmodelc that `xcrun coremlcompiler compile` produces from the package, the same bytes Xcode puts in the app. package_sha256 = sha256 over every file sorted by relative path: relative path bytes then file bytes. coremldata.bin inside a compile can differ by a few bytes between runs.",
+      "packages": [
+        {
+          "name": "kokoro_text-embedding-int8",
+          "path": "kokoro_text-embedding-int8.mlpackage",
+          "role": "text encoder, int8 embeddings",
+          "compiled_logical_bytes": 24392490,
+          "package_logical_bytes": 24381009,
+          "package_sha256": "72095e72fe0bc183f63a141fe8d7d17dbee2c9f57526964e4b0f0cfadc80e0a4",
+          "compute_units": "all",
+          "functions": [
+            "t56",
+            "t110",
+            "t237",
+            "t260",
+            "t280"
+          ],
+          "interfaces": {
+            "t56": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    56
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                }
+              ]
+            },
+            "t110": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    110
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                }
+              ]
+            },
+            "t237": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    237
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                }
+              ]
+            },
+            "t260": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    260
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                }
+              ]
+            },
+            "t280": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    280
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 372904,
+              "sha256": "600f7515b6524ee3b1477f65097dc326f4f9154e369e5f9290c67763f0bf631e"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 24007488,
+              "sha256": "a053d5ccf665e5bdc2967d5c7bcdb6295319472feeef5acd60e1a4850648451e"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "b3c2d9bca6ef267af42b5cf0ede00ecc3672b8a70c6cbb4db9c9e10619ae039f"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_prosody-text-int4",
+          "path": "kokoro_prosody-text-int4.mlpackage",
+          "role": "duration and prosody text features, int4 (duration LSTMs fp32)",
+          "compiled_logical_bytes": 34156234,
+          "package_logical_bytes": 34124644,
+          "package_sha256": "6ca57bf14b9be2d376381efae59e26309d76f6aa340cbc79f2213c936390bdbf",
+          "compute_units": "all",
+          "functions": [
+            "t56",
+            "t110",
+            "t237",
+            "t260",
+            "t280"
+          ],
+          "interfaces": {
+            "t56": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    56
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    56,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    56,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    56
+                  ]
+                }
+              ]
+            },
+            "t110": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    110
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    110,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    110,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    110
+                  ]
+                }
+              ]
+            },
+            "t237": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    237
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    237,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    237,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    237
+                  ]
+                }
+              ]
+            },
+            "t260": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    260
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    260,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    260,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    260
+                  ]
+                }
+              ]
+            },
+            "t280": {
+              "inputs": [
+                {
+                  "name": "input_ids",
+                  "dtype": "int32",
+                  "shape": [
+                    1,
+                    280
+                  ]
+                },
+                {
+                  "name": "encoded",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    256
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "duration_hidden",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    280,
+                    640
+                  ]
+                },
+                {
+                  "name": "duration_logits",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    280,
+                    50
+                  ]
+                },
+                {
+                  "name": "text_features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    280
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 189371,
+              "sha256": "7ba48e511318da330a9b53029b0f58da4cff51b40002b4a78315c897980569e9"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 33934656,
+              "sha256": "cb7b369fde5b9d61e89b6c1c8d88c558686c737d6edf47f060719cbe13561e00"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "23fe51570df53c080cd30c22ef7d643818b50b6a5e16a3ff5758c6b5e53e2ff8"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_pitch_int8",
+          "path": "kokoro_pitch_int8.mlpackage",
+          "role": "pitch and energy predictor, int8",
+          "compiled_logical_bytes": 8892606,
+          "package_logical_bytes": 8857935,
+          "package_sha256": "f88873f5b69a9befa6d75dc179acc073fe346742d8be4de801b9fc14913de9d4",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    146
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    275
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    567
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    614
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "aligned",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    640,
+                    633
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 302694,
+              "sha256": "cf2fa62147a35e461109f968427cdfc4a82ae10665b42744635d3bd00bc811e4"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 8554624,
+              "sha256": "534a015a42c8bfb37e25fc65f5a77d24e096f6776bb288e55c647db408fb2d30"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "a956899ad84c5a2dea5fd0672a50b0444a0a4d9baf043f86cbb4ab89fa8e5879"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_decoder-all-int4",
+          "path": "kokoro_decoder-all-int4.mlpackage",
+          "role": "decoder body, int4",
+          "compiled_logical_bytes": 17369455,
+          "package_logical_bytes": 17335074,
+          "package_sha256": "6e7133cc2ac064bfbc0701e96c7c01a226540ffbb01a038f6e65f2b44ae20946",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    146
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    292
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    292
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    275
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    550
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    550
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    567
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1134
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1134
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    614
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1228
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1228
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "text",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    633
+                  ]
+                },
+                {
+                  "name": "pitch",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "energy",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    1266
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1266
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 272249,
+              "sha256": "62f1ea319cce3a46b266cdf11a9f94bbc46d24d89fc043ad541ba2671c87d026"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 17062208,
+              "sha256": "d4d2cb23f2f2cc11a859a0a33c4f6132069b505d08033c49e347c0de434ed62f"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "6b9d2adcdd317ae82c700b2887e12b063be8c407425ef2b0734e88f6cbc9ad38"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_generator-all-int4",
+          "path": "kokoro_generator-all-int4.mlpackage",
+          "role": "waveform generator, int4",
+          "compiled_logical_bytes": 11392268,
+          "package_logical_bytes": 11294521,
+          "package_sha256": "771b601673d0dee35e1efbbc727548dbfdddf107ea84da7daf234ed6a1fac062",
+          "compute_units": "all",
+          "functions": [
+            "f146",
+            "f275",
+            "f567",
+            "f614",
+            "f633"
+          ],
+          "interfaces": {
+            "f146": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    292
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    17521
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    17521
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    17521
+                  ]
+                }
+              ]
+            },
+            "f275": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    550
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    33001
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    33001
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    33001
+                  ]
+                }
+              ]
+            },
+            "f567": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1134
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    68041
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    68041
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    68041
+                  ]
+                }
+              ]
+            },
+            "f614": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1228
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    73681
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    73681
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    73681
+                  ]
+                }
+              ]
+            },
+            "f633": {
+              "inputs": [
+                {
+                  "name": "features",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    512,
+                    1266
+                  ]
+                },
+                {
+                  "name": "style",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    128
+                  ]
+                },
+                {
+                  "name": "spectrum",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    22,
+                    75961
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "magnitude",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    75961
+                  ]
+                },
+                {
+                  "name": "phase",
+                  "dtype": "float32",
+                  "shape": [
+                    1,
+                    11,
+                    75961
+                  ]
+                }
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 1153784,
+              "sha256": "a401325b99754989f3d5c15320f9ef9199edf554779f4e72b519ad89d07f23b5"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 10140120,
+              "sha256": "e6259398359a3bbc8dda241b2b12e442dd3088a2d2d8cf6f14f16b72e06e0716"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "ccb5850b006a7c1e217d986e9994242dfa6b41d515bb251af423fbf27a5b7f97"
+            }
+          ]
+        }
+      ],
+      "compiled_models_total_bytes": 96203053,
+      "voice": null,
+      "style_rows": {
+        "source": "benchmark/inputs/bench.json (GitHub repository)",
+        "sha256": "df09590b1c648c7c4f2e97a6321742791a35f5c67e8645f24040a87ead277ba5",
+        "note": "This tier's harness takes the af_heart style row for each frozen benchmark case from bench.json; it does not load a voice table, so no voice file is shipped in this folder. The stored rows equal the af_heart voice-table rows for every frozen benchmark case (asserted by scripts/s017_bench_inputs.py)."
+      },
+      "metrics": {
+        "speed": {
+          "gate_median_rtf_max": 0.3,
+          "source": "benchmark/results/size-s011-speed.json",
+          "median_rtf": {
+            "3s": 0.171,
+            "7s": 0.196,
+            "15s": 0.213,
+            "30s": 0.226
+          },
+          "p90_rtf": {
+            "3s": 0.189,
+            "7s": 0.198,
+            "15s": 0.218,
+            "30s": 0.228
+          },
+          "thermal_state": {
+            "3s": "nominal",
+            "7s": "nominal",
+            "15s": "nominal",
+            "30s": "serious"
+          },
+          "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
+          "result": "passed"
+        },
+        "sound": {
+          "source": "benchmark/results/size-s011-listen.json",
+          "test": "four-length blind pairs (3, 7, 15, 30 s) vs reference Kokoro af_heart",
+          "pairs": 4,
+          "ties": 4,
+          "reference_preferred": 0,
+          "candidate_preferred": 0,
+          "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)",
+          "note": "Listener note: some clips sounded slightly lower in volume, not enough to prefer either side (measured RMS about 0.5 dB below the reference). The later 120-sentence test of the shared int4 decoder/generator found a metallic edge (see S014 pilot in the log); this tier was only scored with the four-length test."
+        },
+        "stability": {
+          "result": "not run: the 60-minute loop was made optional on 2026-10-16 and is not a gate"
+        },
+        "mac_chain_check_3s": {
+          "text": "frozen 3s chain vs PyTorch: waveform SNR 2.028 dB (phase-dominated), DTW log-mel 2.562 dB; DTW log-mel per chunk 3s 2.562, 7s 2.723, 15s 2.876, 30s part 1 3.015, part 2 2.991; RMS about 0.5 dB below reference",
+          "source": "docs/EXPERIMENT_LOG.md (S011 section)"
+        },
+        "harness_app_size": "Release unsigned .app 99,489,355 bytes (S011 log) (recorded, not graded)"
+      },
+      "harness": {
+        "project_spec": "benchmark/ios/project-s011.yml",
+        "swift_sources": "benchmark/ios/KokoroSize",
+        "resources_dir": "benchmark/ios/Resources-S011",
+        "swift_compile_flag": "S011",
+        "download": "python scripts/download_models.py qmohits/kokoro-82m-coreml-size-tiers --tier 100mb",
+        "models_dir_after_download": "artifacts/hf/100mb"
+      }
+    },
+    "50mb": {
+      "tier": "50mb",
+      "label": "Research (at most 50 MB)",
+      "experiment": "S014 mixed8",
+      "status": "passed",
+      "shapes": "flexible",
+      "shape_note": "Flexible token length (1 to 512 tokens) and frame length: the packages accept any length in range, so arbitrary sentences work once phoneme ids are supplied.",
+      "recommended": false,
+      "recipe": "S014 width-256 student frontend, Kokoro int8 pitch, int4 decoder, mixed int4/int8 generator, all flexible length.",
+      "size_measurement": "compiled_logical_bytes = sum of file sizes (os.stat st_size) of the .mlmodelc that `xcrun coremlcompiler compile` produces from the package, the same bytes Xcode puts in the app. package_sha256 = sha256 over every file sorted by relative path: relative path bytes then file bytes. coremldata.bin inside a compile can differ by a few bytes between runs.",
+      "packages": [
+        {
+          "name": "kokoro_student_w256",
+          "path": "kokoro_student_w256.mlpackage",
+          "role": "width-256 student replacing text body and duration path",
+          "compiled_logical_bytes": 6076253,
+          "package_logical_bytes": 6068613,
+          "package_sha256": "e9bd7b645cdd3511552e7c0a1d4ff4b79234ef586b69c93db6f25e596775b758",
+          "compute_units": "all",
+          "inputs": [
+            {
+              "name": "input_ids",
+              "dtype": "int32",
+              "shape": [
+                1,
+                1
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  512
+                ]
+              ]
+            },
+            {
+              "name": "style",
+              "dtype": "float32",
+              "shape": [
+                1,
+                256
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "duration_hidden",
+              "dtype": "float16",
+              "shape": []
+            },
+            {
+              "name": "duration_logits",
+              "dtype": "float16",
+              "shape": []
+            },
+            {
+              "name": "text_features",
+              "dtype": "float16",
+              "shape": []
+            }
+          ],
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 57500,
+              "sha256": "78b79c3eaa859838d1772f064b609b8e575bb0d68584304607e3162f96b9b158"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 6010496,
+              "sha256": "f6c199cb979d9d34300ae6a388e3eae81d78f84865d92e4c07b27329eb61ddf2"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "9804d852f1992a27ce004a5ef199d43012ff4d1e4f5dfc4ff2ae1d54c48b3482"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_pitch_int8_flex",
+          "path": "kokoro_pitch_int8_flex.mlpackage",
+          "role": "Kokoro pitch and energy, int8, flexible length",
+          "compiled_logical_bytes": 8622252,
+          "package_logical_bytes": 8615134,
+          "package_sha256": "1025f2082ebc1f02efbb3f48a482e3d4010848e2c5ed8568cadd9e936000a203",
+          "compute_units": "all",
+          "inputs": [
+            {
+              "name": "aligned",
+              "dtype": "float32",
+              "shape": [
+                1,
+                640,
+                1
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  640,
+                  640
+                ],
+                [
+                  1,
+                  2048
+                ]
+              ]
+            },
+            {
+              "name": "style",
+              "dtype": "float32",
+              "shape": [
+                1,
+                128
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "pitch",
+              "dtype": "float32",
+              "shape": []
+            },
+            {
+              "name": "energy",
+              "dtype": "float32",
+              "shape": []
+            }
+          ],
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 59893,
+              "sha256": "a619d9e9e4c98a97ebf693f2f506bfb845dfe4e3e851e3b0a29d239b6831f3c5"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 8554624,
+              "sha256": "534a015a42c8bfb37e25fc65f5a77d24e096f6776bb288e55c647db408fb2d30"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "455e033617b197e3edf6b6eb019b888d12117eb421b1ef5e3cd68aa15a15ed0f"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_decoder_int4_flex",
+          "path": "kokoro_decoder_int4_flex.mlpackage",
+          "role": "Kokoro decoder body, int4, flexible length",
+          "compiled_logical_bytes": 17124260,
+          "package_logical_bytes": 17116992,
+          "package_sha256": "68d6bfd36565e873a4af29372dcf0e9f0301dab397b6a394eda6fb787a61fbb1",
+          "compute_units": "all",
+          "inputs": [
+            {
+              "name": "text",
+              "dtype": "float32",
+              "shape": [
+                1,
+                512,
+                1
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  2048
+                ]
+              ]
+            },
+            {
+              "name": "pitch",
+              "dtype": "float32",
+              "shape": [
+                1,
+                2
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  4096
+                ]
+              ]
+            },
+            {
+              "name": "energy",
+              "dtype": "float32",
+              "shape": [
+                1,
+                2
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  4096
+                ]
+              ]
+            },
+            {
+              "name": "style",
+              "dtype": "float32",
+              "shape": [
+                1,
+                128
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "features",
+              "dtype": "float32",
+              "shape": []
+            }
+          ],
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 54167,
+              "sha256": "8fa7f2f31ae8a8e762086ac1f468a84ea6e88ab68cc82398947a43bada623f1d"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 17062208,
+              "sha256": "d4d2cb23f2f2cc11a859a0a33c4f6132069b505d08033c49e347c0de434ed62f"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "96ec97ea2894bdeab280eda5d06aad29c621a6b86ee3aa55cc8d4be4280ad86b"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_generator_mixed8_flex",
+          "path": "kokoro_generator_mixed8_flex.mlpackage",
+          "role": "Kokoro generator, int4 with int8 output and res5 weights, flexible length",
+          "compiled_logical_bytes": 10759434,
+          "package_logical_bytes": 10739812,
+          "package_sha256": "d73c04988e2e5755e7998660cb073ea41d2fd35ce675134ee348cc6d51fae04d",
+          "compute_units": "cpuAndGPU",
+          "inputs": [
+            {
+              "name": "features",
+              "dtype": "float32",
+              "shape": [
+                1,
+                512,
+                2
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  2,
+                  4096
+                ]
+              ]
+            },
+            {
+              "name": "style",
+              "dtype": "float32",
+              "shape": [
+                1,
+                128
+              ]
+            },
+            {
+              "name": "spectrum",
+              "dtype": "float32",
+              "shape": [
+                1,
+                22,
+                121
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  22,
+                  22
+                ],
+                [
+                  121,
+                  245761
+                ]
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "magnitude",
+              "dtype": "float32",
+              "shape": []
+            },
+            {
+              "name": "phase",
+              "dtype": "float32",
+              "shape": []
+            }
+          ],
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 228771,
+              "sha256": "537577de09a748c1db94c75152113e9e2c07262c60e2bd556e17e7199dac92c1"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 10510424,
+              "sha256": "b8d1b345e53df7c9a2654e86388f700d7f45e82cbb9b9ee3d01611294ae1a6c6"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "f292eaaa5383f4d8a3fcd9bbbb84a0ce8b12f272c17916032d3f374392b2dd01"
+            }
+          ]
+        }
+      ],
+      "compiled_models_total_bytes": 42582199,
+      "voice": null,
+      "style_rows": {
+        "source": "benchmark/inputs/bench.json (GitHub repository)",
+        "sha256": "df09590b1c648c7c4f2e97a6321742791a35f5c67e8645f24040a87ead277ba5",
+        "note": "This tier's harness takes the af_heart style row for each frozen benchmark case from bench.json; it does not load a voice table, so no voice file is shipped in this folder. The stored rows equal the af_heart voice-table rows for every frozen benchmark case (asserted by scripts/s017_bench_inputs.py)."
+      },
+      "metrics": {
+        "speed": {
+          "gate_median_rtf_max": 0.3,
+          "source": "benchmark/results/size-s014-m8-speed.json",
+          "median_rtf": {
+            "3s": 0.173,
+            "7s": 0.181,
+            "15s": 0.189,
+            "30s": 0.197
+          },
+          "p90_rtf": {
+            "3s": 0.175,
+            "7s": 0.184,
+            "15s": 0.193,
+            "30s": 0.204
+          },
+          "thermal_state": {
+            "3s": "nominal",
+            "7s": "nominal",
+            "15s": "nominal",
+            "30s": "serious"
+          },
+          "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
+          "result": "passed"
+        },
+        "sound": {
+          "source": "benchmark/results/size-s014-m8-listen.json",
+          "test": "4 four-length pairs plus 8 hidden-sentence pairs, blind, vs reference Kokoro af_heart",
+          "pairs": 12,
+          "ties": 12,
+          "reference_preferred": 0,
+          "candidate_preferred": 0,
+          "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)",
+          "note": "The 12 ties were the 4 four-length pairs plus 8 hidden-sentence pairs."
+        },
+        "stability": {
+          "result": "not run: the 60-minute loop was made optional on 2026-10-16 and is not a gate"
+        },
+        "mac_15_item_vocoder_isolation_dtw_db": {
+          "text": "1.771 dB (S014 mixed8 voc arm, given fp32 F0) and 1.862 dB (full chain with int8 pitch), 15 items vs fp32 Kokoro",
+          "source": "docs/EXPERIMENT_LOG.md (S015 comparison tables)"
+        },
+        "harness_app_size": "Release unsigned .app 46,107,717 bytes (S014 mixed8 log) (recorded, not graded)"
+      },
+      "harness": {
+        "project_spec": "benchmark/ios/project-s014.yml",
+        "swift_sources": "benchmark/ios/KokoroSize",
+        "resources_dir": "benchmark/ios/Resources-S014",
+        "swift_compile_flag": "S014",
+        "download": "python scripts/download_models.py qmohits/kokoro-82m-coreml-size-tiers --tier 50mb",
+        "models_dir_after_download": "artifacts/hf/50mb"
+      }
+    },
+    "25mb": {
+      "tier": "25mb",
+      "label": "Ultra (at most 25 MB)",
+      "experiment": "S017",
+      "status": "passed",
+      "shapes": "flexible",
+      "shape_note": "Flexible token length (1 to 512 tokens) and frame length: the packages accept any length in range, so arbitrary sentences work once phoneme ids are supplied.",
+      "recommended": true,
+      "recipe": "S014 width-256 student, Kokoro int8 flexible pitch, pruned and distilled student vocoder (int8). The vocoder runs CPU-only.",
+      "size_measurement": "compiled_logical_bytes = sum of file sizes (os.stat st_size) of the .mlmodelc that `xcrun coremlcompiler compile` produces from the package, the same bytes Xcode puts in the app. package_sha256 = sha256 over every file sorted by relative path: relative path bytes then file bytes. coremldata.bin inside a compile can differ by a few bytes between runs.",
+      "packages": [
+        {
+          "name": "kokoro_student_w256",
+          "path": "kokoro_student_w256.mlpackage",
+          "role": "width-256 student replacing text body and duration path",
+          "compiled_logical_bytes": 6076253,
+          "package_logical_bytes": 6068613,
+          "package_sha256": "e9bd7b645cdd3511552e7c0a1d4ff4b79234ef586b69c93db6f25e596775b758",
+          "compute_units": "all",
+          "inputs": [
+            {
+              "name": "input_ids",
+              "dtype": "int32",
+              "shape": [
+                1,
+                1
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  512
+                ]
+              ]
+            },
+            {
+              "name": "style",
+              "dtype": "float32",
+              "shape": [
+                1,
+                256
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "duration_hidden",
+              "dtype": "float16",
+              "shape": []
+            },
+            {
+              "name": "duration_logits",
+              "dtype": "float16",
+              "shape": []
+            },
+            {
+              "name": "text_features",
+              "dtype": "float16",
+              "shape": []
+            }
+          ],
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 57500,
+              "sha256": "78b79c3eaa859838d1772f064b609b8e575bb0d68584304607e3162f96b9b158"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 6010496,
+              "sha256": "f6c199cb979d9d34300ae6a388e3eae81d78f84865d92e4c07b27329eb61ddf2"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "9804d852f1992a27ce004a5ef199d43012ff4d1e4f5dfc4ff2ae1d54c48b3482"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_pitch_int8_flex",
+          "path": "kokoro_pitch_int8_flex.mlpackage",
+          "role": "Kokoro pitch and energy, int8, flexible length",
+          "compiled_logical_bytes": 8622252,
+          "package_logical_bytes": 8615134,
+          "package_sha256": "1025f2082ebc1f02efbb3f48a482e3d4010848e2c5ed8568cadd9e936000a203",
+          "compute_units": "all",
+          "inputs": [
+            {
+              "name": "aligned",
+              "dtype": "float32",
+              "shape": [
+                1,
+                640,
+                1
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  640,
+                  640
+                ],
+                [
+                  1,
+                  2048
+                ]
+              ]
+            },
+            {
+              "name": "style",
+              "dtype": "float32",
+              "shape": [
+                1,
+                128
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "pitch",
+              "dtype": "float32",
+              "shape": []
+            },
+            {
+              "name": "energy",
+              "dtype": "float32",
+              "shape": []
+            }
+          ],
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 59893,
+              "sha256": "a619d9e9e4c98a97ebf693f2f506bfb845dfe4e3e851e3b0a29d239b6831f3c5"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 8554624,
+              "sha256": "534a015a42c8bfb37e25fc65f5a77d24e096f6776bb288e55c647db408fb2d30"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "455e033617b197e3edf6b6eb019b888d12117eb421b1ef5e3cd68aa15a15ed0f"
+            }
+          ]
+        },
+        {
+          "name": "kokoro_s015_vocoder_int8",
+          "path": "kokoro_s015_vocoder_int8.mlpackage",
+          "role": "v4-prune student vocoder, int8, flexible length",
+          "compiled_logical_bytes": 9569102,
+          "package_logical_bytes": 9540035,
+          "package_sha256": "4c004ca4321630593e14e60cfc184f9ec135727926991ada32b89feb5689e3be",
+          "compute_units": "cpuOnly",
+          "inputs": [
+            {
+              "name": "text",
+              "dtype": "float32",
+              "shape": [
+                1,
+                512,
+                1
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  2048
+                ]
+              ]
+            },
+            {
+              "name": "pitch",
+              "dtype": "float32",
+              "shape": [
+                1,
+                2
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  4096
+                ]
+              ]
+            },
+            {
+              "name": "energy",
+              "dtype": "float32",
+              "shape": [
+                1,
+                2
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  4096
+                ]
+              ]
+            },
+            {
+              "name": "style",
+              "dtype": "float32",
+              "shape": [
+                1,
+                128
+              ]
+            },
+            {
+              "name": "spectrum",
+              "dtype": "float32",
+              "shape": [
+                1,
+                22,
+                121
+              ],
+              "shape_range": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  22,
+                  22
+                ],
+                [
+                  121,
+                  245761
+                ]
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "magnitude",
+              "dtype": "float32",
+              "shape": []
+            },
+            {
+              "name": "phase",
+              "dtype": "float32",
+              "shape": []
+            }
+          ],
+          "files": [
+            {
+              "path": "Data/com.apple.CoreML/model.mlmodel",
+              "bytes": 288602,
+              "sha256": "1a101b872b3a2687ddf1eeaf481be824ec3b5d0de4c25e1f691e8a64b8141776"
+            },
+            {
+              "path": "Data/com.apple.CoreML/weights/weight.bin",
+              "bytes": 9250816,
+              "sha256": "30ed8ac2a342f2e62afb70b5168e90609d751cc1d37435f819736d930a608644"
+            },
+            {
+              "path": "Manifest.json",
+              "bytes": 617,
+              "sha256": "b92a8a53b558dbd1c0a6478d249168f657d879bb15c65b27b1091ee31608dd48"
+            }
+          ]
+        }
+      ],
+      "compiled_models_total_bytes": 24267607,
+      "voice": {
+        "file": "af_heart_f32.bin",
+        "bytes": 522240,
+        "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
+        "layout": "510 x 256 little-endian float32 (af_heart[510,1,256] squeezed); the harness reads the row for the token count. Identical to the harness's bundled af_heart.bin."
+      },
+      "models_plus_voice_bytes": 24789847,
+      "bench_input": {
+        "file": "benchmark/inputs/bench-s017.json (GitHub repository)",
+        "sha256": "976e38751ecc887455c1cad724d32d34cb4d51461955bb92821f1d53c297d589"
+      },
+      "metrics": {
+        "speed": {
+          "gate_median_rtf_max": 0.3,
+          "source": "benchmark/results/size-s017-speed.json",
+          "median_rtf": {
+            "3s": 0.06,
+            "7s": 0.072,
+            "15s": 0.096,
+            "30s": 0.109
+          },
+          "p90_rtf": {
+            "3s": 0.062,
+            "7s": 0.074,
+            "15s": 0.101,
+            "30s": 0.111
+          },
+          "thermal_state": {
+            "3s": "serious",
+            "7s": "serious",
+            "15s": "serious",
+            "30s": "serious"
+          },
+          "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
+          "result": "passed",
+          "note": "Vocoder CPU-only; thermal state serious. Result JSON keeps the old key sampleCountMatched."
+        },
+        "sound": {
+          "source": "benchmark/results/size-s017-listen.json, benchmark/results/size-s017-listen-four.json",
+          "sources": [
+            {
+              "source": "benchmark/results/size-s017-listen.json",
+              "test": "hidden-sentence session 2 (8 unseen sentences, 2 to 4 s clips, randomized sides, play-to-end gate); session 1 in the same file (listenerIndex 0) had no play-to-end gate and is not counted",
+              "listener": "listener-1",
+              "pairs": 8,
+              "ties": 8,
+              "candidate_preferred": 0,
+              "reference_preferred": 0
+            },
+            {
+              "source": "benchmark/results/size-s017-listen-four.json",
+              "test": "four-length blind pairs (3, 7, 15, 30 s) vs the original Kokoro af_heart reference wavs, randomized sides, play-to-end gate",
+              "listener": "listener-1",
+              "pairs": 4,
+              "ties": 3,
+              "candidate_preferred": 1,
+              "reference_preferred": 0
+            },
+            {
+              "source": "benchmark/results/size-s017-listen-four.json",
+              "test": "four-length blind pairs (3, 7, 15, 30 s) vs the original Kokoro af_heart reference wavs, randomized sides, play-to-end gate",
+              "listener": "listener-2",
+              "pairs": 4,
+              "ties": 0,
+              "candidate_preferred": 3,
+              "reference_preferred": 1
+            }
+          ],
+          "pairs": 16,
+          "ties": 11,
+          "candidate_preferred": 4,
+          "reference_preferred": 1,
+          "listener": "two listeners: listener-1 (the project author) ran the counted hidden-sentence session and the four-length test; listener-2 ran the four-length test only",
+          "result": "accepted by owner judgement (written rule: passes unless the listener prefers the reference; ties count for neither)",
+          "scope_note": "listener-1: 12 pairs, 11 ties, 1 S017 preference, 0 reference preferences, so the written rule passes. listener-2 (four lengths): 3 S017 preferences and 1 reference preference (15 s). Under the strict written rule that session has one reference preference; the owner judges this acceptable because the smaller model was preferred in 3 of 4 pairs. listener-1 is the project author; the test was blind but not independent, and the author judged listener-2's single reference preference acceptable."
+        },
+        "stability": {
+          "result": "not run: the 60-minute loop is not a gate"
+        },
+        "objective_dtw_log_mel_db": {
+          "source": "benchmark/results/size-s017-eval.json",
+          "mean": 1.787,
+          "gate_db": 1.86,
+          "result": "pass",
+          "scope": "full shipped chain, 15 items, Mac Core ML CPU_ONLY; the phone runs student and pitch on .all"
+        },
+        "hash_check": {
+          "source": "benchmark/results/size-s017-hash.json",
+          "note": "3s waveform SHA-256 re-checked on device after the last harness change"
+        },
+        "harness_app_size": "Release unsigned .app 24,976,568 bytes (recorded, not graded)"
+      },
+      "harness": {
+        "project_spec": "benchmark/ios/project-s017.yml",
+        "swift_sources": "benchmark/ios/KokoroSize-S017",
+        "resources_dir": "benchmark/ios/Resources-S017",
+        "swift_compile_flag": "S017",
+        "download": "python scripts/download_models.py qmohits/kokoro-82m-coreml-size-tiers --tier 25mb",
+        "models_dir_after_download": "artifacts/hf/25mb"
+      }
+    }
+  },
+  "bench_inputs": {
+    "benchmark/inputs/bench.json": "df09590b1c648c7c4f2e97a6321742791a35f5c67e8645f24040a87ead277ba5",
+    "benchmark/inputs/bench-s017.json": "976e38751ecc887455c1cad724d32d34cb4d51461955bb92821f1d53c297d589"
+  }
+}

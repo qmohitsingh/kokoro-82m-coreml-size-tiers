@@ -1,0 +1,162 @@
+{
+  "experiment": "S017 full shipped chain, 15 gate items, Mac Core ML CPU_ONLY",
+  "mean_dtw_db": 1.7872776400180255,
+  "gate_db": 1.86,
+  "gate_pass": true,
+  "mean": {
+    "dtw": 1.7872776400180255,
+    "rms": -0.17138370508122236,
+    "b6_8": 0.15866600855215676,
+    "b8_10": 0.21305224309663776,
+    "b10_12": 0.32274693630123014,
+    "peak": 0.4084016263484955,
+    "all_finite": true
+  },
+  "per_item": [
+    {
+      "case": "3s",
+      "frames": 143,
+      "samples": 85800,
+      "dtw": 1.6776214783403787,
+      "wav_sha256": "37209f4c9b3cd5da701ff4a8092ad9cf3746c22b11e629ed1405c2d17719374f"
+    },
+    {
+      "case": "7s",
+      "frames": 272,
+      "samples": 163200,
+      "dtw": 1.6865550720907434,
+      "wav_sha256": "17665b342235e095d3654c64a1aec0f6f86ec15d380704da5657110ae546b021"
+    },
+    {
+      "case": "15s",
+      "frames": 567,
+      "samples": 340200,
+      "dtw": 1.9176680416528658,
+      "wav_sha256": "157edebfadbec8a85dcbc6f2ebb4db9e9a7f5ba0e350ee1f09b28a8b4e52a5c0"
+    },
+    {
+      "case": "30s-0",
+      "frames": 606,
+      "samples": 363600,
+      "dtw": 1.9868027644191775,
+      "wav_sha256": "8f5a85c7003c48b9048cd48ac4d5e8dc9371cfec3f5ec06573994e25a1acadac"
+    },
+    {
+      "case": "30s-1",
+      "frames": 644,
+      "samples": 386400,
+      "dtw": 1.8232640254651753,
+      "wav_sha256": "869f800db7b847dcdc3e594661e702b507d9cd8af2b32eee4d68c2b921683e28"
+    },
+    {
+      "case": "val0",
+      "frames": 207,
+      "samples": 124200,
+      "dtw": 1.7070024237568187,
+      "wav_sha256": "e5ace5b3805a25f23ce244d94cfe09c52f3ac8acfa20e5b3ab740d8da6bb2675"
+    },
+    {
+      "case": "val1",
+      "frames": 210,
+      "samples": 126000,
+      "dtw": 1.6443277764055897,
+      "wav_sha256": "2b78f7c793615beecd0f9b4270a9a6c944a833b67631a506cf786a4bcb0f61e8"
+    },
+    {
+      "case": "val2",
+      "frames": 240,
+      "samples": 144000,
+      "dtw": 1.6975498879097741,
+      "wav_sha256": "de56fb7a02fd27a5c791cc3a5d47d6a345c97d1bd2a586ec74b5a7e01b49c986"
+    },
+    {
+      "case": "val3",
+      "frames": 698,
+      "samples": 418800,
+      "dtw": 1.8106457832973137,
+      "wav_sha256": "2f7e198dc7806acdcce4cb99bdd9d5b2c26c1b83786ac194fff99dff9baa375c"
+    },
+    {
+      "case": "val4",
+      "frames": 209,
+      "samples": 125400,
+      "dtw": 1.7115607520241016,
+      "wav_sha256": "f28ab92d4eb75f5fa0ffcce59ee197e434abd631f02acd9736f2382e985e71d8"
+    },
+    {
+      "case": "val5",
+      "frames": 269,
+      "samples": 161400,
+      "dtw": 1.8405616700574938,
+      "wav_sha256": "2cbfaf4e7cdb6189031dc41f9045a34458256892aee7e5268a48e160333f27dd"
+    },
+    {
+      "case": "val6",
+      "frames": 606,
+      "samples": 363600,
+      "dtw": 1.8558494672380044,
+      "wav_sha256": "4dab93c94fa30f62e570d41ee38a82c739420ed425d802d3db23dff9ca60c439"
+    },
+    {
+      "case": "val7",
+      "frames": 279,
+      "samples": 167400,
+      "dtw": 1.6936011119212406,
+      "wav_sha256": "c508800fd91a246c0181d53afe643066a60b72271c80069ea386f46501af8f9b"
+    },
+    {
+      "case": "val8",
+      "frames": 693,
+      "samples": 415800,
+      "dtw": 2.1683781347928606,
+      "wav_sha256": "2aaa022e47ea120b35af426a254c4e6ec7dfdc8e2174aaba12a5ac83334b7e76"
+    },
+    {
+      "case": "val9",
+      "frames": 116,
+      "samples": 69600,
+      "dtw": 1.5877762108988438,
+      "wav_sha256": "cdaa8743f8d46c372506a1880aab85ab20937649c06ff218a6b0a5297ca72d95"
+    }
+  ],
+  "models": {
+    "student": {
+      "package_sha256": "e9bd7b645cdd3511552e7c0a1d4ff4b79234ef586b69c93db6f25e596775b758",
+      "compiled_logical_bytes": 6076253,
+      "compute_units_in_eval": "CPU_ONLY"
+    },
+    "pitch": {
+      "package_sha256": "1025f2082ebc1f02efbb3f48a482e3d4010848e2c5ed8568cadd9e936000a203",
+      "compiled_logical_bytes": 8622252,
+      "compute_units_in_eval": "CPU_ONLY"
+    },
+    "vocoder": {
+      "package_sha256": "4c004ca4321630593e14e60cfc184f9ec135727926991ada32b89feb5689e3be",
+      "compiled_logical_bytes": 9569102,
+      "compute_units_in_eval": "CPU_ONLY"
+    }
+  },
+  "compiled_total_bytes": 24267607,
+  "frames_vs_phone_speed_run": {
+    "3s": {
+      "mac": 143,
+      "phone": 143
+    },
+    "7s": {
+      "mac": 272,
+      "phone": 272
+    },
+    "15s": {
+      "mac": 567,
+      "phone": 567
+    },
+    "30s": {
+      "mac": 1250,
+      "phone": 1250
+    }
+  },
+  "frames_vs_phone_listen_clips": {
+    "compared": 120,
+    "mismatches": {}
+  }
+}

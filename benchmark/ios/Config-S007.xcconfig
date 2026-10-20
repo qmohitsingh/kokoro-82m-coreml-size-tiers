@@ -1,0 +1,7 @@
+// Build settings shared by every configuration of the S017 harness.
+// Default bundle id; override it in Signing.local.xcconfig (git-ignored).
+PRODUCT_BUNDLE_IDENTIFIER = com.kokorobench.KokoroBench
+
+// Optional local signing settings. The file does not exist in a fresh clone,
+// and an unsigned build (CODE_SIGNING_ALLOWED=NO) needs none of it.
+#include? "Signing.local.xcconfig"

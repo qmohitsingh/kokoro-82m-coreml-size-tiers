@@ -1,0 +1,144 @@
+{
+ "build": "S014 mixed8 generator",
+ "app_bytes": 46107717,
+ "listener": "listener-1",
+ "rule": "GOAL.md sound gate: fails on any reference preference or a heard metallic edge; ties count for neither",
+ "four_lengths": [
+  {
+   "caseId": "3s",
+   "id": "pair-009",
+   "aIsReference": true,
+   "choice": "tie",
+   "build": "S014",
+   "candidate": "coreml"
+  },
+  {
+   "caseId": "7s",
+   "id": "pair-010",
+   "aIsReference": true,
+   "choice": "tie",
+   "build": "S014",
+   "candidate": "coreml"
+  },
+  {
+   "caseId": "15s",
+   "id": "pair-011",
+   "aIsReference": true,
+   "choice": "tie",
+   "build": "S014",
+   "candidate": "coreml"
+  },
+  {
+   "caseId": "30s",
+   "id": "pair-012",
+   "aIsReference": true,
+   "choice": "tie",
+   "build": "S014",
+   "candidate": "coreml"
+  }
+ ],
+ "hidden": [
+  {
+   "listener": "listener-1",
+   "aIsReference": true,
+   "listenerIndex": 0,
+   "pairIndex": 0,
+   "arm": "s014",
+   "sentenceId": "h014",
+   "timestamp": "2026-10-17T08:01:06Z",
+   "mosA": 4,
+   "choice": "tie",
+   "mosB": 4
+  },
+  {
+   "listener": "listener-1",
+   "aIsReference": false,
+   "listenerIndex": 0,
+   "pairIndex": 1,
+   "arm": "s014",
+   "sentenceId": "h072",
+   "timestamp": "2026-10-17T08:01:13Z",
+   "mosA": 5,
+   "choice": "tie",
+   "mosB": 5
+  },
+  {
+   "listener": "listener-1",
+   "aIsReference": true,
+   "listenerIndex": 0,
+   "pairIndex": 2,
+   "arm": "s014",
+   "sentenceId": "h109",
+   "timestamp": "2026-10-17T08:01:21Z",
+   "mosA": 5,
+   "choice": "tie",
+   "mosB": 5
+  },
+  {
+   "listener": "listener-1",
+   "aIsReference": false,
+   "listenerIndex": 0,
+   "pairIndex": 3,
+   "arm": "s014",
+   "sentenceId": "h083",
+   "timestamp": "2026-10-17T08:01:30Z",
+   "mosA": 5,
+   "choice": "tie",
+   "mosB": 5
+  },
+  {
+   "listener": "listener-1",
+   "aIsReference": true,
+   "listenerIndex": 0,
+   "pairIndex": 4,
+   "arm": "s014",
+   "sentenceId": "h115",
+   "timestamp": "2026-10-17T08:01:56Z",
+   "mosA": 5,
+   "choice": "tie",
+   "mosB": 5
+  },
+  {
+   "listener": "listener-1",
+   "aIsReference": true,
+   "listenerIndex": 0,
+   "pairIndex": 5,
+   "arm": "s014",
+   "sentenceId": "h054",
+   "timestamp": "2026-10-17T08:02:01Z",
+   "mosA": 5,
+   "choice": "tie",
+   "mosB": 5
+  },
+  {
+   "listener": "listener-1",
+   "aIsReference": false,
+   "listenerIndex": 0,
+   "pairIndex": 6,
+   "arm": "s014",
+   "sentenceId": "h119",
+   "timestamp": "2026-10-17T08:02:10Z",
+   "mosA": 5,
+   "choice": "tie",
+   "mosB": 5
+  },
+  {
+   "listener": "listener-1",
+   "aIsReference": false,
+   "listenerIndex": 0,
+   "pairIndex": 7,
+   "arm": "s014",
+   "sentenceId": "h113",
+   "timestamp": "2026-10-17T08:02:14Z",
+   "mosA": 5,
+   "choice": "tie",
+   "mosB": 5
+  }
+ ],
+ "summary": {
+  "pairs": 12,
+  "reference_wins": 0,
+  "candidate_wins": 0,
+  "ties": 12
+ }
+}

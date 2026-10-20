@@ -1,0 +1,60 @@
+name: KokoroSizeS017
+options:
+  bundleIdPrefix: com.kokorosize
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+# Release is the production app (size and speed gates). Listen is Release plus
+# the hidden listening screen only; same sources, models, voice table and DSP.
+configs:
+  Debug: debug
+  Release: release
+  Listen: release
+settings:
+  SWIFT_VERSION: "5.0"
+  TARGETED_DEVICE_FAMILY: "1"
+targets:
+  KokoroSize:
+    type: application
+    platform: iOS
+    # Bundle id and optional signing come from Config-S017.xcconfig, which
+    # includes the git-ignored Signing.local.xcconfig when present.
+    configFiles:
+      Debug: Config-S017.xcconfig
+      Release: Config-S017.xcconfig
+      Listen: Config-S017.xcconfig
+    sources:
+      - path: KokoroSize-S017
+      # Resources-S017 links into artifacts/hf (see scripts/download_models.py).
+      - path: Resources-S017
+    settings:
+      base:
+        PRODUCT_NAME: KokoroSize
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) S017"
+      configs:
+        # Normal Release stripping and dead-code removal at build time.
+        Release:
+          DEPLOYMENT_POSTPROCESSING: YES
+          STRIP_INSTALLED_PRODUCT: YES
+          STRIP_STYLE: all
+          DEAD_CODE_STRIPPING: YES
+        Listen:
+          DEPLOYMENT_POSTPROCESSING: YES
+          STRIP_INSTALLED_PRODUCT: YES
+          STRIP_STYLE: all
+          DEAD_CODE_STRIPPING: YES
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) S017 S017_LISTEN"
+schemes:
+  KokoroSize:
+    build:
+      targets:
+        KokoroSize: all
+    run:
+      config: Release

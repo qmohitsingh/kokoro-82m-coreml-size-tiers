@@ -1,0 +1,31 @@
+# macOS and editor files
+.DS_Store
+*.swp
+
+# Python environments and caches
+.venv/
+.venv-convert/
+__pycache__/
+*.py[cod]
+
+# Downloaded or generated models, checkpoints and corpora
+models/
+artifacts/
+*.mlpackage/
+*.mlmodelc
+*.pt
+*.pth
+*.ckpt
+
+# Xcode local state and build products
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+benchmark/ios/*.xcodeproj/
+
+# Local Apple signing settings (copy Signing.example.xcconfig to this name)
+benchmark/ios/Signing.local.xcconfig
+
+# Local logs
+*.log

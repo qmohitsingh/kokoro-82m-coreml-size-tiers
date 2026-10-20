@@ -1,0 +1,15 @@
+# Versions used to convert, evaluate and package S017 (as in the earlier
+# conversion project, plus misaki, which kokoro installs).
+# Python 3.12.13, macOS with Xcode 26.1.1 (17B100) and xcodegen 2.46.0.
+# Create with: uv venv --python 3.12 .venv-convert
+# Install with: uv pip install --python .venv-convert/bin/python -r requirements-convert.txt
+# (python3.12 -m venv .venv-convert && .venv-convert/bin/pip install -r requirements-convert.txt also works.)
+coremltools==9.0
+torch==2.7.0
+transformers==4.46.3
+kokoro==0.9.4
+misaki==0.9.4
+numpy==2.5.4
+soundfile==0.14.0
+huggingface_hub==0.36.2
+pyyaml==6.0.3
