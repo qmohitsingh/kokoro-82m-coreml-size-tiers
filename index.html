@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kokoro Deep Dives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #f4f6f8; --ink: #151c24; --muted: #566270; --accent: #1d5fc4; --line-strong: #c9d0d8; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #10151b; --ink: #e3e8ee; --muted: #9aa6b3; --accent: #6ea4f0; --line-strong: #364250; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #10151b; --ink: #e3e8ee; --muted: #9aa6b3; --accent: #6ea4f0; --line-strong: #364250; color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 "Instrument Sans", system-ui, sans-serif; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-size: 28px; margin: 0 0 8px; } .lead { color: var(--muted); margin: 0 0 28px; }
+ul.pages { list-style: none; padding: 0; margin: 0; } ul.pages li { padding: 14px 0; border-top: 1px solid var(--line-strong); }
+ul.pages a { color: var(--accent); font-weight: 600; font-size: 18px; text-underline-offset: 3px; } ul.pages span { display: block; color: var(--muted); font-size: 14px; }
+.foot { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--line-strong); font-size: 13px; color: var(--muted); max-width: 860px; }
+.foot p { margin: 0 0 6px; }
+.foot a { color: var(--accent); text-underline-offset: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap"><h1>Kokoro deep dives</h1><p class="lead">Each model stage written as a problem: what goes in, what comes out, a recorded example, pseudocode, the real code, and its cost.</p><ul class="pages"><li><a href="kokoro-82m.html">Kokoro-82M, original PyTorch model</a><span>9 stages from text to 24 kHz audio, 81.8 M parameters.</span></li></ul>
+<footer class="foot"><p>Prepared with AI assistance (Claude, Anthropic). The assistant ran the models, extracted the numbers and code excerpts, and drafted the text and page. Every number comes from a recorded run or a cited file in this repository, and the author reviewed the result.</p><p>Code and models: <a href="https://github.com/qmohitsingh/kokoro-82m-coreml-size-tiers">GitHub</a> . <a href="https://huggingface.co/qmohits/kokoro-82m-coreml-size-tiers">Hugging Face</a> . <a href="index.html">All walkthroughs</a></p></footer>
+</div>
+</body>
+</html>

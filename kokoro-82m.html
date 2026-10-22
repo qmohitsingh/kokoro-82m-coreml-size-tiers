@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kokoro 82M Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #eceff3;
+  --ink: #151c24;
+  --muted: #566270;
+  --line: #d6dce3;
+  --line-strong: #aab4c0;
+  --accent: #1d5fc4;
+  --accent-soft: #dce8fa;
+  --on-accent: #ffffff;
+  --easy: #17703f; --easy-bg: #dcf2e4;
+  --med: #8a5a00; --med-bg: #fbecc8;
+  --hard: #a3262a; --hard-bg: #fbdcdc;
+  --code-bg: #f0f3f7;
+  --tk-kw: #8a2fb0;
+  --tk-str: #12703f;
+  --tk-com: #6a7683;
+  --tk-num: #b2550a;
+  --tk-fn: #1d5fc4;
+  --focus: #1d5fc4;
+  --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c;
+    --surface: #182029;
+    --surface-2: #212b36;
+    --ink: #e4e9ef;
+    --muted: #96a3b1;
+    --line: #2b3643;
+    --line-strong: #46556a;
+    --accent: #6ea4f0;
+    --accent-soft: #1f3555;
+    --on-accent: #0c1118;
+    --easy: #6fd29a; --easy-bg: #17352a;
+    --med: #f0c46a; --med-bg: #3a2f14;
+    --hard: #f19a9c; --hard-bg: #411d20;
+    --code-bg: #131a22;
+    --tk-kw: #c79af0;
+    --tk-str: #8fd8a8;
+    --tk-com: #7f8d9b;
+    --tk-num: #f0a566;
+    --tk-fn: #8ab8f5;
+    --focus: #8ab8f5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c;
+  --surface: #182029;
+  --surface-2: #212b36;
+  --ink: #e4e9ef;
+  --muted: #96a3b1;
+  --line: #2b3643;
+  --line-strong: #46556a;
+  --accent: #6ea4f0;
+  --accent-soft: #1f3555;
+  --on-accent: #0c1118;
+  --easy: #6fd29a; --easy-bg: #17352a;
+  --med: #f0c46a; --med-bg: #3a2f14;
+  --hard: #f19a9c; --hard-bg: #411d20;
+  --code-bg: #131a22;
+  --tk-kw: #c79af0;
+  --tk-str: #8fd8a8;
+  --tk-com: #7f8d9b;
+  --tk-num: #f0a566;
+  --tk-fn: #8ab8f5;
+  --focus: #8ab8f5;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+body::before {
+  content: "";
+  position: fixed; top: 0; left: 0; right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  z-index: 60;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.wrap {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 40px;
+  max-width: 1760px; margin: 0 auto;
+}
+/* header */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding-block: 10px 10px;
+  margin-bottom: 18px;
+}
+.top-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 16px; letter-spacing: -.01em; margin: 0; }
+.brand small { font-family: var(--mono); font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 8px; }
+.pipe { display: flex; align-items: center; gap: 0; margin-top: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.pipe-group { display: flex; align-items: center; flex: none; }
+.pipe-label { font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-right: 8px; flex: none; }
+.pipe-sep { width: 22px; flex: none; height: 1px; background: var(--line-strong); margin: 0 10px; position: relative; }
+.pchip {
+  flex: none; cursor: pointer;
+  font-family: var(--mono); font-size: 12px;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 3px;
+  padding: 3px 8px; white-space: nowrap;
+}
+.pipe-group .pchip + .pchip { margin-left: -1px; }
+.pipe-group.chain .pchip { position: relative; }
+.pipe-group.chain .pchip + .pchip::before {
+  content: ""; position: absolute; left: -9px; top: 50%; width: 8px; height: 1px; background: var(--line-strong);
+}
+.pipe-group.chain .pchip + .pchip { margin-left: 8px; }
+.pchip:hover { background: var(--surface-2); }
+.pchip[aria-current="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+/* layout */
+.grid {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) minmax(0, .95fr);
+  grid-template-areas: "list main code";
+  gap: 28px;
+  align-items: start;
+}
+.list { grid-area: list; min-width: 0; position: sticky; top: calc(var(--hh, 96px) + env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - var(--hh, 96px) - env(safe-area-inset-top, 0px) - 24px); overflow-y: auto; }
+.main { grid-area: main; min-width: 0; }
+.codecol { grid-area: code; min-width: 0; position: sticky; top: calc(var(--hh, 96px) + env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - var(--hh, 96px) - env(safe-area-inset-top, 0px) - 24px); display: flex; flex-direction: column; gap: 14px; }
+.gh { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 14px 0 6px; padding: 0 8px; }
+.gh:first-child { margin-top: 0; }
+.item {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 6px; align-items: center;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: 0; border-radius: 3px; padding: 7px 8px; line-height: 1.3;
+}
+.item:hover { background: var(--surface-2); }
+.item[aria-current="true"] { background: var(--accent-soft); font-weight: 600; }
+.item .n { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.pill {
+  font-family: var(--mono); font-size: 11px; padding: 1px 7px; border-radius: 999px; white-space: nowrap; font-weight: 500;
+}
+.pill.Easy { color: var(--easy); background: var(--easy-bg); }
+.pill.Medium { color: var(--med); background: var(--med-bg); }
+.pill.Hard { color: var(--hard); background: var(--hard-bg); }
+/* main content */
+.title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+h1 { font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: -.015em; }
+h1 .num { font-family: var(--mono); font-weight: 400; color: var(--muted); margin-right: 10px; font-size: 22px; }
+h2 { font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 30px 0 10px; font-weight: 500; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
+.main p { margin: 0 0 10px; max-width: 74ch; }
+.tw { overflow-x: auto; margin: 4px 0 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+th { font-family: var(--mono); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+td.m { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+td.name { font-family: var(--mono); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.sub { font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 10px 0 2px; }
+ul.cons { margin: 0; padding-left: 20px; max-width: 80ch; }
+ul.cons li { margin-bottom: 6px; }
+.ex-h { font-weight: 700; margin: 16px 0 6px; font-size: 14px; }
+.ex {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+  padding: 10px 14px; font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+}
+.ex div { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ex div + div { margin-top: 6px; }
+.ex .k { font-weight: 700; margin-right: 6px; }
+.appr { margin: 0; padding: 0; list-style: none; counter-reset: a; }
+.appr li { counter-increment: a; padding-left: 30px; position: relative; margin-bottom: 12px; max-width: 78ch; }
+.appr li::before { content: counter(a); position: absolute; left: 0; top: 0; font-family: var(--mono); font-size: 12px; color: var(--muted); width: 22px; text-align: right; }
+.appr b { display: block; }
+.diagram { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); padding: 12px; }
+.diagram svg { display: block; margin: 0 auto; max-width: none; height: auto; }
+svg .nd { fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 1; }
+svg .nl { fill: var(--ink); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+svg .nt { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+svg .ed { fill: none; stroke: var(--accent); stroke-width: 1.4; }
+svg .ah { fill: var(--accent); }
+svg .el { fill: var(--accent); font-family: var(--mono); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+svg .ld { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 2 3; fill: none; }
+.see25 a { color: var(--accent); text-underline-offset: 3px; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+.foot { margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--line-strong); font-size: 13px; color: var(--muted); max-width: 860px; }
+.foot p { margin: 0 0 6px; }
+.foot a { color: var(--accent); text-underline-offset: 3px; }
+ul.src { margin: 0; padding-left: 18px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+ul.src li { overflow-wrap: anywhere; margin-bottom: 3px; }
+.pn { display: flex; justify-content: space-between; gap: 12px; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); }
+.btn { cursor: pointer; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 3px; padding: 8px 14px; font-size: 14px; max-width: 48%; text-align: left; }
+.btn:hover:not(:disabled) { background: var(--surface-2); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.btn.next { text-align: right; margin-left: auto; }
+/* code panel */
+.panel { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 4px; display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; overflow: hidden; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); flex: none; }
+.tab { cursor: pointer; background: none; border: 0; border-bottom: 2px solid transparent; padding: 9px 16px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+.codebody { overflow: auto; min-height: 0; padding: 0; }
+.snip-h { font-family: var(--mono); font-size: 11.5px; color: var(--muted); padding: 8px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); position: sticky; left: 0; }
+pre.code { margin: 0; padding: 12px 14px; background: var(--code-bg); font-family: var(--mono); font-size: 12.5px; line-height: 1.55; tab-size: 4; overflow-x: auto; }
+pre.code + .snip-h { border-top: 1px solid var(--line); }
+.t-kw { color: var(--tk-kw); font-weight: 500; }
+.t-str { color: var(--tk-str); }
+.t-com { color: var(--tk-com); font-style: italic; }
+.t-num { color: var(--tk-num); }
+.t-fn { color: var(--tk-fn); }
+.cost { border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); padding: 10px 14px 12px; flex: none; max-height: 34vh; overflow: auto; }
+.cost h3 { margin: 0 0 6px; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 500; }
+.cost dl { margin: 0 0 6px; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-size: 13.5px; }
+.cost dt { color: var(--muted); }
+.cost dd { margin: 0; font-family: var(--mono); font-size: 13px; }
+.cost p { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+/* two columns */
+@media (max-width: 1179px) {
+  .grid { grid-template-columns: 230px minmax(0, 1fr); grid-template-areas: "list main" "list code"; gap: 22px 24px; }
+  .codecol { position: static; max-height: none; }
+  .codebody { max-height: 70vh; }
+  .cost { max-height: none; }
+}
+@media (max-width: 759px) {
+  .grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "list" "main" "code"; gap: 16px; }
+  .list { position: static; max-height: none; overflow: visible; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+  .chips .gh { display: none; }
+  .chips .item { width: auto; flex: none; display: flex; gap: 8px; border: 1px solid var(--line-strong); background: var(--surface); padding: 5px 10px; white-space: nowrap; }
+  .chips .item[aria-current="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .chips .item[aria-current="true"] .n { color: var(--on-accent); }
+  h1 { font-size: 22px; }
+  h1 .num { font-size: 18px; }
+  .top { margin-bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="top" id="top">
+    <div class="top-row"><h1 class="brand" style="font-size:16px">Kokoro 82M deep dive<small>9 problems, original PyTorch model</small></h1></div>
+    <nav class="pipe" id="pipe" aria-label="Pipeline"></nav>
+  </header>
+  <div class="grid">
+    <nav class="list chips" id="list" aria-label="Problems"></nav>
+    <main class="main" id="main"></main>
+    <aside class="codecol" id="codecol" aria-label="Code"></aside>
+  </div>
+<footer class="foot"><p>Prepared with AI assistance (Claude, Anthropic). The assistant ran the models, extracted the numbers and code excerpts, and drafted the text and page. Every number comes from a recorded run or a cited file in this repository, and the author reviewed the result.</p><p>Code and models: <a href="https://github.com/qmohitsingh/kokoro-82m-coreml-size-tiers">GitHub</a> . <a href="https://huggingface.co/qmohits/kokoro-82m-coreml-size-tiers">Hugging Face</a> . <a href="index.html">All walkthroughs</a></p></footer>
+</div>
+<script>
+const STAGES = [{"id":"g2p","title":"Text to Phoneme IDs","difficulty":"Medium","problem":"Turn an English sentence into the integer sequence the model reads. Kokoro does not read letters. It reads phonemes from a fixed table of 114 symbols, with a pad id 0 at both ends. The PyTorch model itself has no phonemizer: KModel.forward takes a phoneme string and looks each character up in config.json. The phonemes come from misaki, the G2P package that KPipeline wraps.","inputs":[{"name":"text","shape":"string","dtype":"utf-8","meaning":"English text, one chunk of at most 510 phonemes"}],"outputs":[{"name":"phonemes","shape":"string","dtype":"unicode","meaning":"Kokoro phoneme string, stress marks included, punctuation kept"},{"name":"input_ids","shape":"[1, T]","dtype":"int64","meaning":"0 + one id per phoneme that is in the vocab + 0. T = phonemes + 2. KModel builds this as a torch.LongTensor."}],"constraints":["Vocab is 114 symbols (ids 1..177 with gaps). The embedding tables have n_token = 178 rows.","KModel.forward drops any character that is not in the vocab, without a warning.","At most 510 phonemes per chunk. 510 + 2 pads = 512 = ALBERT max_position_embeddings, and KModel asserts it.","KPipeline splits long text into chunks of at most 510 phonemes at word boundaries, and truncates ps[:510] if one chunk is still too long.","misaki 0.9.4, American English, trf=False (spaCy en_core_web_sm tagger), espeak-ng fallback for out-of-dictionary words."],"examples":[{"label":"Example 1: \"nice\"","input":"text = \"nice\"","output":"phonemes = nˈIs\ninput_ids = [0, 56, 156, 25, 61, 0]  (T = 6)","explanation":"Four phonemes, so T = 6. The diphthong I (misaki's shorthand for the 'ai' sound) is one id. Same ids as the 25 MB page. misaki median 0.65 ms on Mac CPU."},{"label":"Example 2: 11-word neutral sentence","input":"text = \"The old clock on the wall ticked quietly through the night.\"","output":"phonemes = ði ˈOld klˈɑk ˌɔn ðə wˈɔl tˈɪkt kwˈIətli θɹu ðə nˈIt.\ninput_ids = [0, 81, 51, 16, 156, 31, 54, 46, 16, 53, 54, 156, 69, 53, 16, 157, 76, 56, 16, 81, 83, 16, 65, 156, 76, 54, 16, 62, 156, 102, 53, 62, 16, 53, 65, 156, 25, 83, 62, 54, 51, 16, 119, 123, 63, 16, 81, 83, 16, 56, 156, 25, 62, 4, 0]\nT = 55  (53 phonemes + 2 pads)","explanation":"Spaces are id 16 and the final period is id 4, so word breaks and punctuation are real tokens. They get frames later. Identical ids to the 25 MB page. misaki median 1.06 ms on Mac CPU."},{"label":"Example 3: the T = 512 case","input":"the first 510 phoneme ids of 12 repeats of the neutral sentence (the exact input the 25 MB page used)","output":"T = 512  (510 phonemes + 2 pads)\nphonemes[:40] = ði ˈOld klˈɑk ˌɔn ðə wˈɔl tˈɪkt kwˈIətli\nids[:16] = [0, 81, 51, 16, 156, 31, 54, 46, 16, 53, 54, 156, 69, 53, 16, 157]","explanation":"This is the longest input KModel accepts. The assert len(input_ids)+2 <= 512 passes with no slack. One more phoneme would fail."},{"label":"Edge: more than 510 phonemes","input":"a phoneme string longer than 510 symbols","output":"KPipeline.en_tokenize cuts the token list into chunks of at most 510 phonemes. If one chunk is still longer, it keeps ps[:510] and logs a warning. KPipeline.generate_from_tokens raises ValueError for a raw phoneme string longer than 510.","explanation":"Each chunk is a separate model call with its own voice row, so pitch and pace can jump between chunks."}],"approach":[{"name":"Rule + dictionary G2P","detail":"misaki en.G2P tokenizes with spaCy (tagger only), looks each word up in a gold then silver pronunciation lexicon, and applies part-of-speech rules for function words (the, a, to)."},{"name":"espeak-ng fallback","detail":"Words missing from the lexicon go to espeak-ng, whose phonemes are mapped into Kokoro's symbol set."},{"name":"Diphthong shorthand","detail":"Kokoro writes the five English diphthongs as single capital letters (A, I, O, W, Y)."},{"name":"Vocab lookup and padding","detail":"KModel.forward maps each character through config.json vocab, drops unknown ones, and wraps the ids in 0 pads."}],"pseudocode":"def text_to_ids(text):\n    ps, _ = misaki_en_G2P(trf=False, british=False, fallback=espeak)(text)\n    body = [VOCAB[c] for c in ps if c in VOCAB]   # unknown symbols dropped\n    assert len(body) + 2 <= 512                   # else KPipeline chunks first\n    return ps, [0] + body + [0]                   # LongTensor [1, T]","code":[{"file":"kokoro/pipeline.py","lines":"106-113","lang":"python","snippet":"        if lang_code in 'ab':\n            try:\n                fallback = espeak.EspeakFallback(british=lang_code=='b')\n            except Exception as e:\n                logger.warning(\"EspeakFallback not Enabled: OOD words will be skipped\")\n                logger.warning({str(e)})\n                fallback = None\n            self.g2p = en.G2P(trf=trf, british=lang_code=='b', fallback=fallback, unk='')"},{"file":"kokoro/model.py","lines":"128-133","lang":"python","snippet":"        input_ids = list(filter(lambda i: i is not None, map(lambda p: self.vocab.get(p), phonemes)))\n        logger.debug(f\"phonemes: {phonemes} -> input_ids: {input_ids}\")\n        assert len(input_ids)+2 <= self.context_length, (len(input_ids)+2, self.context_length)\n        input_ids = torch.LongTensor([[0, *input_ids, 0]]).to(self.device)\n        ref_s = ref_s.to(self.device)\n        audio, pred_dur = self.forward_with_tokens(input_ids, ref_s, speed)"}],"architecture":{"nodes":[{"id":"text","label":"text","detail":"English string"},{"id":"spacy","label":"spaCy tagger (en_core_web_sm)","detail":"part-of-speech tags only"},{"id":"lex","label":"misaki lexicon + rules","detail":"gold/silver dictionary, stress and diphthong rules"},{"id":"esp","label":"espeak-ng fallback","detail":"only for out-of-lexicon words"},{"id":"ps","label":"phoneme string","detail":"IPA-like symbols + punctuation"},{"id":"vocab","label":"vocab lookup (114 symbols)","detail":"config.json vocab; unknown dropped"},{"id":"pad","label":"pad 0 both ends","detail":"T = n + 2 <= 512"},{"id":"ids","label":"input_ids [1,T] int64","detail":"goes to PLBERT and the TextEncoder"}],"edges":[["text","spacy","string"],["spacy","lex","tagged words"],["lex","esp","unknown words"],["lex","ps","phonemes"],["esp","ps","phonemes"],["ps","vocab","characters"],["vocab","pad","n ids"],["pad","ids","[1, n+2] int64"]]},"cost":{"params":null,"bytes":null,"notes":"Runs on the CPU in Python. misaki median of 3: 0.65 ms for \"nice\", 1.06 ms for the sentence (warm, after the spaCy model is loaded). Not part of the 82M weights."},"sources":["kokoro/pipeline.py (G2P construction, 510 chunking)","kokoro/model.py (vocab lookup, context assert)","hexgrad/Kokoro-82M config.json (vocab, n_token 178)","raw/82m/record82.json (this run)"],"group":"Inference chain","see25":"g2p","see25_note":"Same G2P and same ids. The 25 MB chain also has no phonemizer on the phone, so it takes a phoneme string."},{"id":"voice","title":"Pick the Voice Style Row","difficulty":"Easy","problem":"The voice is not a network. It is a table of style vectors, shape [510, 1, 256] for af_heart, one row per possible phoneme count. KPipeline picks row len(ps) - 1. Each row is split in two: the first 128 numbers go to the decoder and generator (how the voice sounds), the last 128 go to the prosody predictor (how it is spoken).","inputs":[{"name":"ps","shape":"string","dtype":"unicode","meaning":"phoneme string of one chunk, length n <= 510"},{"name":"af_heart.pt","shape":"[510, 1, 256]","dtype":"float32","meaning":"the voice pack, loaded with torch.load"}],"outputs":[{"name":"ref_s","shape":"[1, 256]","dtype":"float32","meaning":"pack[len(ps) - 1]"},{"name":"ref_s[:, :128]","shape":"[1, 128]","dtype":"float32","meaning":"decoder and generator style (timbre)"},{"name":"s = ref_s[:, 128:]","shape":"[1, 128]","dtype":"float32","meaning":"predictor style (duration, pitch, energy)"}],"constraints":["The row index uses len(ps), the phoneme STRING length. KModel counts ids after dropping unknown characters. They match unless a symbol was dropped.","A row exists for every n from 1 to 510, so every legal chunk length has its own style.","The pack is 510 x 256 x 4 = 522,240 bytes. It is a separate file (voices/af_heart.pt), not part of the 82M model weights.","Checked: the pack equals the 25 MB release file af_heart_f32.bin (max abs diff 0.0 over all 510 rows)."],"examples":[{"label":"Example 1: \"nice\"","input":"n = 4 phonemes (T = 6)","output":"row = 3; ref_s shape [1, 256]\nstyle[:8] = [-0.2432, 0.2263, 0.0057, -0.1288, -0.1988, -0.0265, -0.1112, -0.1871]\nacoustic half (ref_s[:, :128]) min -0.4014, max 0.4353, mean -0.0019\nprosodic half (s) min -1.1074, max 1.2267, mean 0.0548\nprosodic[:8] = [-0.1116, 0.5559, 1.2267, 0.2289, -0.0266, -0.1708, 0.4086, 0.5306]","explanation":"A very short phrase gets a row with a wide prosodic half, so a strongly varying style, while the acoustic half stays small. Same row and same numbers as the 25 MB page, because it is the same voice."},{"label":"Example 2: 11-word sentence","input":"n = 53 phonemes (T = 55)","output":"row = 52; ref_s shape [1, 256]\nstyle[:8] = [-0.2221, 0.1595, -0.0143, -0.1241, -0.2794, 0.0323, -0.0561, -0.1528]\nacoustic half min -0.3022, max 0.3118, mean -0.0077\nprosodic half min -0.4141, max 0.3991, mean 0.0171\nprosodic[:8] = [-0.025, 0.1934, 0.3701, 0.0937, -0.1056, 0.2293, 0.1312, 0.0803]","explanation":"A mid-length sentence gets a calmer prosodic half than the 4-phoneme case. The row is 52 because 53 phonemes minus one."},{"label":"Example 3: the T = 512 case","input":"n = 510 phonemes (T = 512)","output":"row = 509 (the last row of the pack)\nstyle[:8] = [-0.2153, 0.1347, -0.0288, -0.1329, -0.3122, 0.054, -0.0344, -0.141]\nacoustic half min -0.3122, max 0.3284, mean -0.0098\nprosodic half min -0.3284, max 0.3329, mean -0.0028","explanation":"Row 509 is the last row. n = 510 is the largest phoneme count the pipeline allows."}],"approach":[{"name":"Length-indexed lookup","detail":"Style depends on the phoneme count. The training data tied each utterance length to a reference style."},{"name":"Split by use","detail":"ref_s[:, :128] feeds the decoder and generator. ref_s[:, 128:] feeds the predictor and its AdaIN layers."},{"name":"Raw fp32 table","detail":"No compute. Reading a row is a tensor index."}],"pseudocode":"pack = torch.load('af_heart.pt')      # [510, 1, 256]\nn = len(ps)                           # phoneme string length\nref_s = pack[n - 1]                   # [1, 256]\nacoustic = ref_s[:, :128]             # decoder + generator\nprosodic = ref_s[:, 128:]             # predictor","code":[{"file":"kokoro/pipeline.py","lines":"136-149","lang":"python","snippet":"    def load_single_voice(self, voice: str):\n        if voice in self.voices:\n            return self.voices[voice]\n        if voice.endswith('.pt'):\n            f = voice\n        else:\n            f = hf_hub_download(repo_id=self.repo_id, filename=f'voices/{voice}.pt')\n            if not voice.startswith(self.lang_code):\n                v = LANG_CODES.get(voice, voice)\n                p = LANG_CODES.get(self.lang_code, self.lang_code)\n                logger.warning(f'Language mismatch, loading {v} voice into {p} pipeline.')\n        pack = torch.load(f, weights_only=True)\n        self.voices[voice] = pack\n        return pack"},{"file":"kokoro/pipeline.py","lines":"224-232","lang":"python","snippet":"    def infer(\n        model: KModel,\n        ps: str,\n        pack: torch.FloatTensor,\n        speed: Union[float, Callable[[int], float]] = 1\n    ) -> KModel.Output:\n        if callable(speed):\n            speed = speed(len(ps))\n        return model(ps, pack[len(ps)-1], speed, return_output=True)"},{"file":"kokoro/model.py","lines":"104-104","lang":"python","snippet":"        s = ref_s[:, 128:]"}],"architecture":{"nodes":[{"id":"ps","label":"phoneme string","detail":"n characters"},{"id":"pack","label":"voice pack af_heart","detail":"[510, 1, 256] fp32"},{"id":"row","label":"row n - 1","detail":"pack[len(ps) - 1]"},{"id":"ac","label":"ref_s[:, :128]","detail":"to decoder + generator"},{"id":"pr","label":"s = ref_s[:, 128:]","detail":"to predictor"}],"edges":[["ps","row","n"],["pack","row","[510,1,256]"],["row","ac","[1,128]"],["row","pr","[1,128]"]]},"cost":{"params":130560,"bytes":522240,"notes":"A constant table of 130,560 numbers (510 x 256). No compute. It is stored in voices/af_heart.pt, outside the 81,763,410 model parameters."},"sources":["kokoro/pipeline.py (load_single_voice, infer)","kokoro/model.py (s = ref_s[:, 128:])","raw/82m/record82.json (this run)"],"group":"Inference chain","see25":"voice","see25_note":"Same voice table. The 25 MB page ships it as a raw float32 file and indexes it the same way."},{"id":"plbert","title":"PLBERT Text Context","difficulty":"Hard","problem":"Give every phoneme a view of the whole sentence. CustomAlbert is a 12-layer ALBERT that reads the phoneme ids and returns one 768-number vector per token. A Linear layer (bert_encoder) shrinks 768 to 512 and the result is moved to channel-first layout. Only the duration and pitch path uses this. It is called d_en.","inputs":[{"name":"input_ids","shape":"[1, T]","dtype":"int64","meaning":"0 + phonemes + 0"},{"name":"attention_mask","shape":"[1, T]","dtype":"int32","meaning":"(~text_mask).int(), all ones for one unpadded sequence"}],"outputs":[{"name":"bert_dur","shape":"[1, T, 768]","dtype":"float32","meaning":"ALBERT last_hidden_state"},{"name":"d_en","shape":"[1, 512, T]","dtype":"float32","meaning":"bert_encoder(bert_dur), transposed to channel-first"}],"constraints":["ALBERT config from config.json: hidden 768, 12 heads, intermediate 2048, 12 layers, max_position_embeddings 512, vocab 178, dropout 0.1 (off in eval).","ALBERT shares one set of layer weights across all 12 layers, so the layer weights are counted once (5,513,984 parameters) but run 12 times.","The word embeddings are 128 wide and a Linear 128 to 768 lifts them (embedding_hidden_mapping_in).","Attention cost grows with T squared. T <= 512 because of the position table.","text_mask is built from input_lengths, so with one sequence nothing is masked."],"examples":[{"label":"Example 1: \"nice\" (T = 6)","input":"input_ids = [0, 56, 156, 25, 61, 0]","output":"bert_dur [1, 6, 768], token 1 [:8] = [-0.2325, -0.2709, -0.3773, -0.55, -0.491, 0.1649, -0.0583, 0.4848]\nbert_dur min -11.5755, max 1.542, mean -0.0014\nd_en [1, 512, 6], token 1 [:8] = [-2.3694, 0.7339, 0.2001, 0.0326, 0.3367, 0.7308, -1.4251, 0.3799]\nd_en min -3.8564, max 4.0314, mean -0.0171","explanation":"The student of the 25 MB chain replaces this block. Median time 10.61 ms here (this includes bert_encoder)."},{"label":"Example 2: 11-word sentence (T = 55)","input":"T = 55, all 55 tokens attend to each other","output":"bert_dur [1, 55, 768], token 1 [:8] = [-0.2195, 0.1073, -0.1685, -0.7794, 0.058, -0.2595, -0.2747, 0.2587]\nbert_dur min -11.5949, max 2.1778, mean 0.0005\nd_en [1, 512, 55], token 1 [:8] = [0.8341, -0.8087, 0.0935, 1.4825, 0.3422, 0.7483, -1.0738, 1.7134]\nd_en min -5.7475, max 6.6142, mean -0.0037","explanation":"Median 18.91 ms on Mac CPU, 8.2% of the 229.48 ms chain. bert_dur has one large negative outlier (min -11.5949), which is normal for ALBERT outputs."},{"label":"Example 3: the T = 512 case","input":"T = 512, the full ALBERT context","output":"bert_dur [1, 512, 768]\nbert_dur min -11.5898, max 2.8974, mean -0.0002\nd_en [1, 512, 512]\nd_en min -7.1131, max 8.7725, mean -0.0005","explanation":"Median 64.67 ms. The cost grows roughly with T plus a T squared attention term, and it is small next to the generator (1586.3 ms)."}],"approach":[{"name":"ALBERT cross-layer sharing","detail":"One transformer layer (self-attention + FFN with LayerNorm) is applied 12 times. Same weights, deeper context."},{"name":"Factorized embedding","detail":"128-wide token embeddings are mapped up to 768 before the first layer."},{"name":"Linear projection","detail":"bert_encoder is a plain Linear 768 to 512, then transpose(-1, -2) puts channels first."}],"pseudocode":"def plbert(input_ids):                       # [1, T]\n    mask = ones(1, T)                         # nothing padded\n    h = embed(input_ids) @ W_128_to_768       # [1, T, 768]\n    for _ in range(12):                       # one shared layer\n        h = ln(h + mha12(h, mask))\n        h = ln(h + ffn_2048(h))\n    return linear_768_512(h).transpose(-1, -2)  # d_en [1, 512, T]","code":[{"file":"kokoro/model.py","lines":"51-53","lang":"python","snippet":"        self.bert = CustomAlbert(AlbertConfig(vocab_size=config['n_token'], **config['plbert']))\n        self.bert_encoder = torch.nn.Linear(self.bert.config.hidden_size, config['hidden_dim'])\n        self.context_length = self.bert.config.max_position_embeddings"},{"file":"kokoro/model.py","lines":"100-103","lang":"python","snippet":"        text_mask = torch.arange(input_lengths.max()).unsqueeze(0).expand(input_lengths.shape[0], -1).type_as(input_lengths)\n        text_mask = torch.gt(text_mask+1, input_lengths.unsqueeze(1)).to(self.device)\n        bert_dur = self.bert(input_ids, attention_mask=(~text_mask).int())\n        d_en = self.bert_encoder(bert_dur).transpose(-1, -2)"},{"file":"kokoro/modules.py","lines":"179-183","lang":"python","snippet":"# https://github.com/yl4579/StyleTTS2/blob/main/Utils/PLBERT/util.py\nclass CustomAlbert(AlbertModel):\n    def forward(self, *args, **kwargs):\n        outputs = super().forward(*args, **kwargs)\n        return outputs.last_hidden_state"}],"architecture":{"nodes":[{"id":"ids","label":"input_ids [1,T]","detail":"int64"},{"id":"emb","label":"Embeddings 178 x 128 + position + type","detail":"88,832 params"},{"id":"map","label":"Linear 128 -> 768","detail":"99,072 params"},{"id":"lay","label":"Shared ALBERT layer x 12","detail":"12 heads, FFN 2048, 5,513,984 params (shared)"},{"id":"enc","label":"bert_encoder Linear 768 -> 512","detail":"393,728 params"},{"id":"tr","label":"transpose(-1, -2)","detail":"channel-first"},{"id":"den","label":"d_en [1,512,T]","detail":"to the duration encoder"}],"edges":[["ids","emb","[1,T]"],["emb","map","[1,T,128]"],["map","lay","[1,T,768]"],["lay","enc","[1,T,768]"],["enc","tr","[1,T,512]"],["tr","den","[1,512,T]"]]},"cost":{"params":6686208,"bytes":26744832,"notes":"bert 6,292,480 + bert_encoder 393,728 parameters, fp32 bytes from the state dict. The bert count includes the ALBERT pooler (590,592), which Kokoro never uses, so 5,701,888 bert parameters do work. That is why the 25 MB page says the student replaces 19,478,018 teacher parameters. Approximate multiply-accumulates from shapes (Linear layers only, plus 2 x T x T x 768 per layer for attention): T=55 about 3.72 G, T=512 about 38.9 G. Mac CPU wall time, median of 3 warm runs, torch 2.14.1, 8 threads. This is a Mac, not an iPhone. Sentence: 18.91 ms."},"sources":["kokoro/model.py","kokoro/modules.py (CustomAlbert)","hexgrad/Kokoro-82M config.json (plbert)","raw/82m/record82.json","raw/82m/params82.json"],"group":"Inference chain","see25":"student","see25_note":"The 25 MB student (3.0 M params) replaces plbert + duration + textenc in one conv/attention trunk (scripts/s014_student.py)."},{"id":"duration","title":"Duration Prediction","difficulty":"Hard","problem":"Decide how many frames each phoneme lasts. The prosody predictor runs d_en through a DurationEncoder (three rounds of BiLSTM + AdaLayerNorm, with the style glued back on each time), a final BiLSTM, and a Linear 512 to 50. It sums 50 sigmoids per token, divides by speed, rounds, and clamps to at least 1 frame. One frame is 600 audio samples (25 ms at 24 kHz).","inputs":[{"name":"d_en","shape":"[1, 512, T]","dtype":"float32","meaning":"from PLBERT + bert_encoder"},{"name":"s","shape":"[1, 128]","dtype":"float32","meaning":"prosodic half of the voice row"},{"name":"speed","shape":"float","dtype":"-","meaning":"1.0 in all examples"}],"outputs":[{"name":"d","shape":"[1, T, 640]","dtype":"float32","meaning":"DurationEncoder output (512 text channels + 128 style), reused by the pitch path"},{"name":"duration_proj output","shape":"[1, T, 50]","dtype":"float32","meaning":"per-token logits for 50 unit steps"},{"name":"pred_dur","shape":"[T]","dtype":"int64","meaning":"frames per token, each >= 1"}],"constraints":["max_dur = 50 in config.json, so the head has 50 sigmoid outputs. A token cannot exceed 50 frames.","torch.round rounds half to even. The 25 MB chain rounds half away from zero in Swift, so a tie can differ.","The LSTMs run on packed sequences (pack_padded_sequence) so padding is skipped. With one sequence there is none.","Dropout is off in eval, so the predictor is deterministic.","speed divides the soft count before rounding. Speed 2 would roughly halve every duration."],"examples":[{"label":"Example 1: \"nice\"","input":"T = 6, speed = 1","output":"d [1, 6, 640], lstm [1, 6, 512], logits [1, 6, 50]\ntoken 1 logits[:8] = [31.1946, 2.3637, -1.1351, -3.944, -5.6791, -7.1072, -8.4703, -9.7003]\nsigmoid sums = [19.224, 2.181, 4.844, 4.471, 14.315, 8.56]\npred_dur = [19, 2, 5, 4, 14, 9]  ->  F = 53\ntoken:frames = <pad>:19, n:2, ˈ:5, I:4, s:14, <pad>:9","explanation":"The two pads take 19 and 9 frames and the final s takes 14. The 25 MB student gave [19, 2, 4, 4, 11, 15] (F = 55). Here F = 53, 31800 samples = 1.325 s versus 33000 samples there."},{"label":"Example 2: 11-word sentence","input":"T = 55, speed = 1","output":"sigmoid sums[:12] = [13.491, 1.992, 1.96, 2.012, 1.996, 2.056, 1.994, 1.768, 2.021, 2.004, 1.248, 3.073]\npred_dur = [13, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 4, 4, 5, 3, 2, 1, 2, 2, 2, 3, 2, 2, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 4, 4, 12, 6, 1]\nF = 137 frames -> 82200 samples = 3.425 s","explanation":"The first pad gets 13 frames, the last t gets 12 and the period gets 6. Most phonemes get 1 to 3 frames. The 25 MB student predicted F = 135 (81000 samples). The original gives F = 137, so the distilled student is off by 2 frames (1200 samples). Median 6.69 ms on Mac CPU."},{"label":"Example 3: the T = 512 case","input":"T = 512, speed = 1","output":"F = 1077 frames -> 646200 samples = 26.925 s\nfirst 12 pred_dur = [13, 1, 2, 2, 2, 2, 2, 1, 2, 2, 1, 3]\nlast 6 pred_dur = [1, 2, 2, 5, 9, 7]\nmin 1, max 15","explanation":"The 25 MB page recorded F = 1181 (708600 samples) for the same ids. The original predictor gives F = 1077, which is 104 frames shorter. Median 48.93 ms on Mac CPU."}],"approach":[{"name":"Soft-count durations","detail":"Each of 50 outputs is a probability that the phoneme is still going at that unit step. The sum of probabilities is the length."},{"name":"AdaLayerNorm","detail":"A Linear maps style (128) to a per-channel scale and shift (gamma, beta). x becomes (1 + gamma) * layer_norm(x) + beta. This lets the speaker style steer the duration features."},{"name":"BiLSTM stack","detail":"Three BiLSTMs (640 in, 256 per direction) separated by AdaLayerNorm, then one more BiLSTM before the head."},{"name":"Round and clamp","detail":"torch.round (half to even), clamp(min=1), cast to int64."}],"pseudocode":"def durations(d_en, s, speed):                 # d_en [1,512,T], s [1,128]\n    x = cat([d_en, s.expand(T)], channel)          # [1,T,640]\n    for _ in range(3):\n        x = bilstm(x)                              # 640 -> 512\n        x = ada_layer_norm(x, s)                   # (1+gamma)*LN(x)+beta\n        x = cat([x, s.expand(T)], channel)         # back to 640\n    d = x\n    h = bilstm(d)                                  # [1,T,512]\n    logits = linear_512_50(h)                      # [1,T,50]\n    dur = sigmoid(logits).sum(-1) / speed          # soft frame count\n    return d, round(dur).clamp(min=1).long()","code":[{"file":"kokoro/model.py","lines":"104-109","lang":"python","snippet":"        s = ref_s[:, 128:]\n        d = self.predictor.text_encoder(d_en, s, input_lengths, text_mask)\n        x, _ = self.predictor.lstm(d)\n        duration = self.predictor.duration_proj(x)\n        duration = torch.sigmoid(duration).sum(axis=-1) / speed\n        pred_dur = torch.round(duration).clamp(min=1).long().squeeze()"},{"file":"kokoro/modules.py","lines":"72-88","lang":"python","snippet":"class AdaLayerNorm(nn.Module):\n    def __init__(self, style_dim, channels, eps=1e-5):\n        super().__init__()\n        self.channels = channels\n        self.eps = eps\n        self.fc = nn.Linear(style_dim, channels*2)\n\n    def forward(self, x, s):\n        x = x.transpose(-1, -2)\n        x = x.transpose(1, -1)\n        h = self.fc(s)\n        h = h.view(h.size(0), h.size(1), 1)\n        gamma, beta = torch.chunk(h, chunks=2, dim=1)\n        gamma, beta = gamma.transpose(1, -1), beta.transpose(1, -1)\n        x = F.layer_norm(x, (self.channels,), eps=self.eps)\n        x = (1 + gamma) * x + beta\n        return x.transpose(1, -1).transpose(-1, -2)"},{"file":"kokoro/modules.py","lines":"137-176","lang":"python","snippet":"class DurationEncoder(nn.Module):\n    def __init__(self, sty_dim, d_model, nlayers, dropout=0.1):\n        super().__init__()\n        self.lstms = nn.ModuleList()\n        for _ in range(nlayers):\n            self.lstms.append(nn.LSTM(d_model + sty_dim, d_model // 2, num_layers=1, batch_first=True, bidirectional=True, dropout=dropout))\n            self.lstms.append(AdaLayerNorm(sty_dim, d_model))\n        self.dropout = dropout\n        self.d_model = d_model\n        self.sty_dim = sty_dim\n\n    def forward(self, x, style, text_lengths, m):\n        masks = m\n        x = x.permute(2, 0, 1)\n        s = style.expand(x.shape[0], x.shape[1], -1)\n        x = torch.cat([x, s], axis=-1)\n        x.masked_fill_(masks.unsqueeze(-1).transpose(0, 1), 0.0)\n        x = x.transpose(0, 1)\n        x = x.transpose(-1, -2)\n        for block in self.lstms:\n            if isinstance(block, AdaLayerNorm):\n                x = block(x.transpose(-1, -2), style).transpose(-1, -2)\n                x = torch.cat([x, s.permute(1, 2, 0)], axis=1)\n                x.masked_fill_(masks.unsqueeze(-1).transpose(-1, -2), 0.0)\n            else:\n                lengths = text_lengths if text_lengths.device == torch.device('cpu') else text_lengths.to('cpu')\n                x = x.transpose(-1, -2)\n                x = nn.utils.rnn.pack_padded_sequence(\n                    x, lengths, batch_first=True, enforce_sorted=False)\n                block.flatten_parameters()\n                x, _ = block(x)\n                x, _ = nn.utils.rnn.pad_packed_sequence(\n                    x, batch_first=True)\n                x = F.dropout(x, p=self.dropout, training=False)\n                x = x.transpose(-1, -2)\n                x_pad = torch.zeros([x.shape[0], x.shape[1], m.shape[-1]], device=x.device)\n                x_pad[:, :, :x.shape[-1]] = x\n                x = x_pad\n\n        return x.transpose(-1, -2)"}],"architecture":{"nodes":[{"id":"den","label":"d_en [1,512,T]","detail":"from PLBERT"},{"id":"sty","label":"concat style s","detail":"128 channels, same for every token"},{"id":"de","label":"DurationEncoder","detail":"3 x (BiLSTM 640->512, AdaLayerNorm, concat style)"},{"id":"lstm","label":"BiLSTM 640 -> 512","detail":"predictor.lstm"},{"id":"proj","label":"Linear 512 -> 50","detail":"duration_proj"},{"id":"sig","label":"sigmoid, sum(-1), / speed","detail":"soft frame count per token"},{"id":"rnd","label":"round, clamp(min=1)","detail":"int64"},{"id":"pd","label":"pred_dur [T]","detail":"frames per token"},{"id":"d","label":"d [1,T,640]","detail":"kept for the alignment"}],"edges":[["den","sty","[1,512,T]"],["sty","de","[T,1,640]"],["de","lstm","[1,T,640]"],["de","d","[1,T,640]"],["lstm","proj","[1,T,512]"],["proj","sig","[1,T,50]"],["sig","rnd","[1,T]"],["rnd","pd","[T]"]]},"cost":{"params":7778354,"bytes":31113416,"notes":"predictor.text_encoder (DurationEncoder) 5,913,600 + predictor.lstm 1,839,104 + duration_proj 25,650 parameters. Approximate multiply-accumulates from shapes: T=55 about 0.41 G, T=512 about 3.77 G (LSTM and Linear only). Mac CPU wall time, median of 3 warm runs, torch 2.14.1, 8 threads. This is a Mac, not an iPhone. Sentence: 6.69 ms."},"sources":["kokoro/model.py","kokoro/modules.py (DurationEncoder, AdaLayerNorm, ProsodyPredictor)","hexgrad/Kokoro-82M config.json (max_dur 50, n_layer 3)","raw/82m/record82.json","raw/82m/params82.json"],"group":"Inference chain","see25":"student","see25_note":"The student's duration head (Linear 256 to 50, same sigmoid-sum rule) replaces this whole path, and its rounding is half away from zero in Swift."},{"id":"align","title":"Durations to a Frame Alignment","difficulty":"Medium","problem":"Stretch the per-token features onto a timeline of frames. repeat_interleave turns the durations into one token index per frame. A zero matrix pred_aln_trg of shape [T, F] gets a 1 at (token, frame) for each frame. Multiplying the features by this matrix repeats each token column as many times as it lasts. This is a matrix multiply, not a loop. It also fixes the length of the final audio: 600 samples per frame.","inputs":[{"name":"pred_dur","shape":"[T]","dtype":"int64","meaning":"frames per token"},{"name":"d","shape":"[1, T, 640]","dtype":"float32","meaning":"DurationEncoder output"}],"outputs":[{"name":"pred_aln_trg","shape":"[1, T, F]","dtype":"float32","meaning":"one-hot alignment, F = sum(pred_dur)"},{"name":"en","shape":"[1, 640, F]","dtype":"float32","meaning":"d^T @ pred_aln_trg, the prosody features on the frame timeline"}],"constraints":["Each column of pred_aln_trg has exactly one 1, so the matrix has F ones in total.","The matrix is dense float32 [T, F]. For T = 512 and F = 1077 that is 551,424 floats, almost all zeros.","The same matrix later aligns the TextEncoder output (asr = t_en @ pred_aln_trg).","The audio is exactly 600 * F samples (F frames x 2 pitch steps x 300 samples).","No weights. No randomness."],"examples":[{"label":"Example 1: \"nice\"","input":"pred_dur = [19, 2, 5, 4, 14, 9]","output":"aln [1, 6, 53], nonzero entries = 53 (one per frame)\nindices[:16] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]\nen [1, 640, 53], en[:8, frame 0] = [-0.3264, 0.2092, -0.0743, -0.0252, 0.3799, -0.4342, 1.9508, -0.2584]\nen min -3.3143, max 3.2281, mean -0.0089","explanation":"F = 53 here. The 25 MB chain had F = 55, so it gets 2 more frames. Audio will be 31800 samples."},{"label":"Example 2: 11-word sentence","input":"T = 55, F = 137","output":"aln [1, 55, 137], nonzero entries = 137 (one per frame)\nindices[:16] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]\nen [1, 640, 137], en[:8, frame 0] = [-0.1855, 0.1616, -0.0297, -0.0615, 0.363, 0.0452, 0.3038, -0.0609]\nen min -2.8033, max 2.3146, mean -0.0001","explanation":"The first token (the pad) owns frames 0 to 12, so indices starts with thirteen 0s. Median 0.09 ms on Mac CPU. F = 137 here, F = 135 in the 25 MB chain."},{"label":"Example 3: the T = 512 case","input":"T = 512, F = 1077","output":"aln [1, 512, 1077], nonzero entries = 1077 (one per frame)\nindices[:16] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2]\nen [1, 640, 1077], en[:8, frame 0] = [-0.1364, 0.1959, -0.0744, -0.1795, 0.2103, 0.1705, 0.0484, 0.2575]\nen min -2.5583, max 2.4864, mean -0.0024","explanation":"aln has 551,424 entries and only 1077 are 1. Median 0.43 ms. The 25 MB page had F = 1181 for the same ids."}],"approach":[{"name":"repeat_interleave","detail":"arange(T) repeated pred_dur[t] times gives the token index of every frame."},{"name":"One-hot scatter","detail":"aln[indices, arange(F)] = 1 writes the matrix in one indexing step."},{"name":"Alignment as a matrix product","detail":"features [C, T] @ aln [T, F] = features repeated per frame, [C, F]. The same trick serves two tensors."}],"pseudocode":"def align(pred_dur, d):                           # d [1,T,640]\n    idx = repeat_interleave(arange(T), pred_dur)    # [F]\n    aln = zeros(T, F); aln[idx, arange(F)] = 1      # one-hot\n    en = d.transpose(-1, -2) @ aln                  # [1,640,F]\n    return aln[None], en","code":[{"file":"kokoro/model.py","lines":"109-114","lang":"python","snippet":"        pred_dur = torch.round(duration).clamp(min=1).long().squeeze()\n        indices = torch.repeat_interleave(torch.arange(input_ids.shape[1], device=self.device), pred_dur)\n        pred_aln_trg = torch.zeros((input_ids.shape[1], indices.shape[0]), device=self.device)\n        pred_aln_trg[indices, torch.arange(indices.shape[0])] = 1\n        pred_aln_trg = pred_aln_trg.unsqueeze(0).to(self.device)\n        en = d.transpose(-1, -2) @ pred_aln_trg"}],"architecture":{"nodes":[{"id":"pd","label":"pred_dur [T]","detail":"frames per token"},{"id":"ri","label":"repeat_interleave(arange(T), pred_dur)","detail":"token index per frame"},{"id":"aln","label":"pred_aln_trg [1,T,F]","detail":"one-hot"},{"id":"d","label":"d [1,640,T]","detail":"transposed"},{"id":"mm","label":"matmul","detail":"d^T @ aln"},{"id":"en","label":"en [1,640,F]","detail":"to F0Ntrain"}],"edges":[["pd","ri","[T]"],["ri","aln","[F]"],["aln","mm","[1,T,F]"],["d","mm","[1,640,T]"],["mm","en","[1,640,F]"]]},"cost":{"params":null,"bytes":null,"notes":"No weights. One matmul 640 x T x F: T=55, F=137 is 4,822,400 multiply-accumulates (approximate, dense). T=512, F=1077 is 352,911,360. Mac CPU wall time, median of 3 warm runs, torch 2.14.1, 8 threads. This is a Mac, not an iPhone. Sentence: 0.09 ms, T=512: 0.43 ms."},"sources":["kokoro/model.py","raw/82m/record82.json"],"group":"Inference chain","see25":"align","see25_note":"The 25 MB chain does the same stretch as np.repeat in Swift on the student's outputs, and rounds half away from zero."},{"id":"f0n","title":"Pitch and Noise Curves (F0Ntrain)","difficulty":"Hard","problem":"Predict the speaking melody. F0Ntrain takes the frame-aligned prosody features, runs one shared BiLSTM, then two separate branches of AdaIN residual blocks: one for F0 (pitch in Hz) and one for N (an energy-like noise curve). The middle block of each branch upsamples 2x, so both curves have 2F values. The vocoder uses them to place voiced sounds and shape loudness.","inputs":[{"name":"en","shape":"[1, 640, F]","dtype":"float32","meaning":"prosody features on the frame timeline"},{"name":"s","shape":"[1, 128]","dtype":"float32","meaning":"prosodic style"}],"outputs":[{"name":"F0_pred","shape":"[1, 2F]","dtype":"float32","meaning":"pitch in Hz per half-frame (unvoiced is near 0 or below)"},{"name":"N_pred","shape":"[1, 2F]","dtype":"float32","meaning":"noise/energy curve per half-frame"}],"constraints":["Output length is exactly 2F because AdainResBlk1d with upsample=True doubles the time axis once.","The shared BiLSTM is 640 in, 256 per direction, so 512 out. Both branches start from the same LSTM output.","The pitch branch and noise branch have the same layout and separate weights (3,288,320 parameters each).","Dropout is off in eval, so F0 and N are deterministic.","F0 is not clamped. Unvoiced frames show small values around 0 and the generator treats F0 <= 10 Hz as unvoiced."],"examples":[{"label":"Example 1: \"nice\"","input":"en [1, 640, 53]","output":"F0 [1, 106] (2F = 106), N [1, 106]\nF0[:8] = [-0.2411, -0.1096, -0.158, -0.3622, -0.1652, -0.2794, -0.1238, -0.1526]\nN[:8] = [-10.3365, -10.1516, -10.1327, -10.0806, -10.1609, -10.1416, -10.1854, -10.1317]\nF0 min -2.4341, max 262.4976, mean 69.8178\nN min -10.3365, max 9.5048, mean -3.4185\nvoiced (F0 > 10 Hz) fraction 0.321, mean voiced F0 217.88 Hz\nblock shapes {'F0_0': [1, 512, 53], 'F0_1': [1, 256, 106], 'F0_2': [1, 256, 106], 'N_0': [1, 512, 53], 'N_1': [1, 256, 106], 'N_2': [1, 256, 106]}","explanation":"The 25 MB page recorded voiced fraction 0.373 and mean voiced pitch 191.03 Hz with its own frame count; here 0.321 and 217.88 Hz. That model is the original predictor quantized to int8, fed the student's frames, so a small gap is expected."},{"label":"Example 2: 11-word sentence","input":"en [1, 640, 137]","output":"F0 [1, 274] (2F = 274), N [1, 274]\nF0[:8] = [-0.2178, 0.1917, 0.1437, -0.0181, 0.0084, -0.0934, -0.0577, -0.0399]\nN[:8] = [-9.5471, -9.501, -9.3697, -9.3631, -9.3228, -9.3389, -9.3091, -9.3294]\nF0 min -5.6712, max 310.3538, mean 132.5672\nN min -9.5471, max 8.1946, mean 2.0388\nvoiced (F0 > 10 Hz) fraction 0.675, mean voiced F0 196.41 Hz\nblock shapes {'F0_0': [1, 512, 137], 'F0_1': [1, 256, 274], 'F0_2': [1, 256, 274], 'N_0': [1, 512, 137], 'N_1': [1, 256, 274], 'N_2': [1, 256, 274]}","explanation":"Voiced fraction 0.675 and mean voiced pitch 196.41 Hz. The 25 MB page recorded 0.678 and 196.55 Hz. Median 11.89 ms on Mac CPU."},{"label":"Example 3: the T = 512 case","input":"en [1, 640, 1077]","output":"F0 [1, 2154] (2F = 2154), N [1, 2154]\nF0[:8] = [0.1142, 0.1971, -0.0832, -0.2118, -0.2575, -0.3884, -0.3593, -0.4007]\nN[:8] = [-9.9792, -9.7776, -9.6559, -9.6428, -9.5722, -9.5727, -9.5945, -9.5877]\nF0 min -5.9473, max 309.6208, mean 148.3352\nN min -10.3831, max 8.1027, mean 3.2984\nvoiced (F0 > 10 Hz) fraction 0.76, mean voiced F0 195.15 Hz\nblock shapes {'F0_0': [1, 512, 1077], 'F0_1': [1, 256, 2154], 'F0_2': [1, 256, 2154], 'N_0': [1, 512, 1077], 'N_1': [1, 256, 2154], 'N_2': [1, 256, 2154]}","explanation":"Median 44.17 ms. The 25 MB page recorded voiced fraction 0.75 and 196.39 Hz with F = 1181."}],"approach":[{"name":"Shared BiLSTM","detail":"One recurrent pass over the frame sequence gives both branches the same context."},{"name":"AdaIN residual blocks","detail":"InstanceNorm then (1 + gamma) * x + beta, with gamma and beta from a Linear on the style. LeakyReLU 0.2, conv k3, twice, plus a shortcut. The sum is scaled by 1/sqrt(2)."},{"name":"2x upsample in the middle block","detail":"Nearest-neighbour upsample on the shortcut and a depthwise ConvTranspose on the main path double the time axis."},{"name":"1x1 projections","detail":"F0_proj and N_proj are Conv1d 256 to 1."}],"pseudocode":"def F0Ntrain(en, s):                              # en [1,640,F], s [1,128]\n    x = bilstm(en.transpose(-1, -2))               # [1,F,512]\n    x = x.transpose(-1, -2)                        # [1,512,F]\n    f0 = x\n    for blk in F0_blocks:                          # 512->512, 512->256 (x2 up), 256->256\n        f0 = blk(f0, s)\n    n = x\n    for blk in N_blocks:\n        n = blk(n, s)\n    return F0_proj(f0).squeeze(1), N_proj(n).squeeze(1)   # [1,2F] each","code":[{"file":"kokoro/modules.py","lines":"124-134","lang":"python","snippet":"    def F0Ntrain(self, x, s):\n        x, _ = self.shared(x.transpose(-1, -2))\n        F0 = x.transpose(-1, -2)\n        for block in self.F0:\n            F0 = block(F0, s)\n        F0 = self.F0_proj(F0)\n        N = x.transpose(-1, -2)\n        for block in self.N:\n            N = block(N, s)\n        N = self.N_proj(N)\n        return F0.squeeze(1), N.squeeze(1)"},{"file":"kokoro/istftnet.py","lines":"20-31","lang":"python","snippet":"class AdaIN1d(nn.Module):\n    def __init__(self, style_dim, num_features):\n        super().__init__()\n        # affine should be False, however there's a bug in the old torch.onnx.export (not newer dynamo) that causes the channel dimension to be lost if affine=False. When affine is true, there's additional learnably parameters. This shouldn't really matter setting it to True, since we're in inference mode\n        self.norm = nn.InstanceNorm1d(num_features, affine=True)\n        self.fc = nn.Linear(style_dim, num_features*2)\n\n    def forward(self, x, s):\n        h = self.fc(s)\n        h = h.view(h.size(0), h.size(1), 1)\n        gamma, beta = torch.chunk(h, chunks=2, dim=1)\n        return (1 + gamma) * self.norm(x) + beta"},{"file":"kokoro/istftnet.py","lines":"340-381","lang":"python","snippet":"class AdainResBlk1d(nn.Module):\n    def __init__(self, dim_in, dim_out, style_dim=64, actv=nn.LeakyReLU(0.2), upsample='none', dropout_p=0.0):\n        super().__init__()\n        self.actv = actv\n        self.upsample_type = upsample\n        self.upsample = UpSample1d(upsample)\n        self.learned_sc = dim_in != dim_out\n        self._build_weights(dim_in, dim_out, style_dim)\n        self.dropout = nn.Dropout(dropout_p)\n        if upsample == 'none':\n            self.pool = nn.Identity()\n        else:\n            self.pool = weight_norm(nn.ConvTranspose1d(dim_in, dim_in, kernel_size=3, stride=2, groups=dim_in, padding=1, output_padding=1))\n\n    def _build_weights(self, dim_in, dim_out, style_dim):\n        self.conv1 = weight_norm(nn.Conv1d(dim_in, dim_out, 3, 1, 1))\n        self.conv2 = weight_norm(nn.Conv1d(dim_out, dim_out, 3, 1, 1))\n        self.norm1 = AdaIN1d(style_dim, dim_in)\n        self.norm2 = AdaIN1d(style_dim, dim_out)\n        if self.learned_sc:\n            self.conv1x1 = weight_norm(nn.Conv1d(dim_in, dim_out, 1, 1, 0, bias=False))\n\n    def _shortcut(self, x):\n        x = self.upsample(x)\n        if self.learned_sc:\n            x = self.conv1x1(x)\n        return x\n\n    def _residual(self, x, s):\n        x = self.norm1(x, s)\n        x = self.actv(x)\n        x = self.pool(x)\n        x = self.conv1(self.dropout(x))\n        x = self.norm2(x, s)\n        x = self.actv(x)\n        x = self.conv2(self.dropout(x))\n        return x\n\n    def forward(self, x, s):\n        out = self._residual(x, s)\n        out = (out + self._shortcut(x)) * torch.rsqrt(torch.tensor(2))\n        return out"},{"file":"kokoro/model.py","lines":"115-115","lang":"python","snippet":"        F0_pred, N_pred = self.predictor.F0Ntrain(en, s)"}],"architecture":{"nodes":[{"id":"en","label":"en [1,640,F]","detail":"from the alignment"},{"id":"lstm","label":"BiLSTM 640 -> 512 (shared)","detail":"1,839,104 params"},{"id":"f0a","label":"F0 block 512 -> 512","detail":"AdaIN res block"},{"id":"f0b","label":"F0 block 512 -> 256, 2x up","detail":"AdaIN res block, upsample"},{"id":"f0c","label":"F0 block 256 -> 256","detail":"AdaIN res block"},{"id":"f0p","label":"F0_proj Conv1d 256 -> 1","detail":""},{"id":"na","label":"N block 512 -> 512","detail":"AdaIN res block"},{"id":"nb","label":"N block 512 -> 256, 2x up","detail":"AdaIN res block, upsample"},{"id":"nc","label":"N block 256 -> 256","detail":"AdaIN res block"},{"id":"np","label":"N_proj Conv1d 256 -> 1","detail":""},{"id":"F0","label":"F0_pred [1,2F]","detail":"Hz"},{"id":"N","label":"N_pred [1,2F]","detail":"noise/energy"}],"edges":[["en","lstm","[1,F,640]"],["lstm","f0a","[1,512,F]"],["f0a","f0b","[1,512,F]"],["f0b","f0c","[1,256,2F]"],["f0c","f0p","[1,256,2F]"],["f0p","F0","[1,1,2F]"],["lstm","na","[1,512,F]"],["na","nb","[1,512,F]"],["nb","nc","[1,256,2F]"],["nc","np","[1,256,2F]"],["np","N","[1,1,2F]"]]},"cost":{"params":8416258,"bytes":33665032,"notes":"shared BiLSTM 1,839,104 + F0 branch 3,288,320 + N branch 3,288,320 + two 1x1 projections 514 = 8,416,258 parameters. Approximate multiply-accumulates from shapes: F=137 about 1.29 G, F=1077 about 10.17 G. Mac CPU wall time, median of 3 warm runs, torch 2.14.1, 8 threads. This is a Mac, not an iPhone. Sentence: 11.89 ms."},"sources":["kokoro/modules.py (ProsodyPredictor.F0Ntrain)","kokoro/istftnet.py (AdaIN1d, AdainResBlk1d)","raw/82m/record82.json","raw/82m/params82.json"],"group":"Inference chain","see25":"pitch","see25_note":"The 25 MB chain keeps this exact predictor (F0Ntrain, int8 weights, Core ML) and feeds it the student's frames instead of the original ones."},{"id":"textenc","title":"Text Encoder (CNN + BiLSTM)","difficulty":"Medium","problem":"A second, separate text path feeds the decoder. TextEncoder embeds the phoneme ids (178 x 512), runs three Conv1d blocks (kernel 5, weight norm, LayerNorm, LeakyReLU), then a BiLSTM. The result t_en is one 512-number vector per token. The alignment matrix stretches it onto the frame timeline: asr = t_en @ pred_aln_trg.","inputs":[{"name":"input_ids","shape":"[1, T]","dtype":"int64","meaning":"0 + phonemes + 0"},{"name":"pred_aln_trg","shape":"[1, T, F]","dtype":"float32","meaning":"from the alignment stage"}],"outputs":[{"name":"t_en","shape":"[1, 512, T]","dtype":"float32","meaning":"per-token text features"},{"name":"asr","shape":"[1, 512, F]","dtype":"float32","meaning":"text features per frame, input to the decoder"}],"constraints":["Padded positions are zeroed with masked_fill_ after each conv. With one sequence the mask is all False.","Three conv blocks with kernel 5, so the receptive field is local (about 13 tokens) before the BiLSTM adds the full sentence.","This path does not use the voice. Only the decoder (later) mixes in style.","The BiLSTM is 512 in and 256 per direction, so 512 out.","T_en and the PLBERT path are independent. PLBERT only feeds durations and pitch."],"examples":[{"label":"Example 1: \"nice\"","input":"T = 6, F = 53","output":"t_en [1, 512, 6], token 1 [:8] = [0.6694, -0.0215, 0.0041, 0.0015, 0.0509, 0.7811, -0.5501, -0.0337]\nt_en min -0.9793, max 0.9966, mean -0.0445\nasr = t_en @ aln [1, 512, 53], frame 0 [:8] = [0.3422, -0.0002, 0.0375, 0.0142, 0.007, 0.6916, -0.3708, 0.0033]\nasr min -0.9793, max 0.9966, mean -0.0414","explanation":"The 25 MB student's text_features head plays this role. Median 1.43 ms here (text encoder plus the matmul)."},{"label":"Example 2: 11-word sentence","input":"T = 55, F = 137","output":"t_en [1, 512, 55], token 1 [:8] = [0.1888, -0.0829, -0.0063, 0.0032, 0.1004, 0.6842, -0.0623, -0.0001]\nt_en min -0.9961, max 0.9997, mean -0.0479\nasr = t_en @ aln [1, 512, 137], frame 0 [:8] = [0.0737, -0.0081, 0.0411, 0.0075, 0.002, 0.5254, -0.2867, 0.0057]\nasr min -0.9961, max 0.9997, mean -0.0446","explanation":"t_en stays inside -1 to 1 because it is a BiLSTM output. Median 2.73 ms on Mac CPU."},{"label":"Example 3: the T = 512 case","input":"T = 512, F = 1077","output":"t_en [1, 512, 512], token 1 [:8] = [0.1888, -0.0829, -0.0063, 0.0032, 0.1004, 0.6842, -0.0623, -0.0001]\nt_en min -0.9961, max 0.9997, mean -0.0475\nasr = t_en @ aln [1, 512, 1077], frame 0 [:8] = [0.0737, -0.0081, 0.0411, 0.0075, 0.002, 0.5254, -0.2867, 0.0057]\nasr min -0.9961, max 0.9997, mean -0.044","explanation":"Median 16.18 ms. The matmul alone is 512 x 512 x 1077 = 282,329,088 multiply-accumulates."}],"approach":[{"name":"Embedding + CNN","detail":"Local phoneme context from three Conv1d layers (512 to 512, k5)."},{"name":"Channel LayerNorm","detail":"A custom LayerNorm transposes so it normalizes over the 512 channels."},{"name":"BiLSTM","detail":"Adds sentence-level context in both directions."},{"name":"Alignment matmul","detail":"t_en [512, T] @ aln [T, F] repeats each token column by its duration."}],"pseudocode":"def text_encoder(ids):                    # [1,T]\n    x = embed(ids).transpose(1, 2)        # [1,512,T]\n    for blk in range(3):\n        x = leaky_relu(ln(conv5(x)), 0.2)\n    x = bilstm(x.transpose(1, 2))         # [1,T,512]\n    return x.transpose(1, 2)              # t_en [1,512,T]\n\nasr = t_en @ pred_aln_trg                 # [1,512,F]","code":[{"file":"kokoro/modules.py","lines":"35-69","lang":"python","snippet":"class TextEncoder(nn.Module):\n    def __init__(self, channels, kernel_size, depth, n_symbols, actv=nn.LeakyReLU(0.2)):\n        super().__init__()\n        self.embedding = nn.Embedding(n_symbols, channels)\n        padding = (kernel_size - 1) // 2\n        self.cnn = nn.ModuleList()\n        for _ in range(depth):\n            self.cnn.append(nn.Sequential(\n                weight_norm(nn.Conv1d(channels, channels, kernel_size=kernel_size, padding=padding)),\n                LayerNorm(channels),\n                actv,\n                nn.Dropout(0.2),\n            ))\n        self.lstm = nn.LSTM(channels, channels//2, 1, batch_first=True, bidirectional=True)\n\n    def forward(self, x, input_lengths, m):\n        x = self.embedding(x)  # [B, T, emb]\n        x = x.transpose(1, 2)  # [B, emb, T]\n        m = m.unsqueeze(1)\n        x.masked_fill_(m, 0.0)\n        for c in self.cnn:\n            x = c(x)\n            x.masked_fill_(m, 0.0)\n        x = x.transpose(1, 2)  # [B, T, chn]\n        lengths = input_lengths if input_lengths.device == torch.device('cpu') else input_lengths.to('cpu')\n        x = nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)\n        self.lstm.flatten_parameters()\n        x, _ = self.lstm(x)\n        x, _ = nn.utils.rnn.pad_packed_sequence(x, batch_first=True)\n        x = x.transpose(-1, -2)\n        x_pad = torch.zeros([x.shape[0], x.shape[1], m.shape[-1]], device=x.device)\n        x_pad[:, :, :x.shape[-1]] = x\n        x = x_pad\n        x.masked_fill_(m, 0.0)\n        return x"},{"file":"kokoro/model.py","lines":"116-117","lang":"python","snippet":"        t_en = self.text_encoder(input_ids, input_lengths, text_mask)\n        asr = t_en @ pred_aln_trg"}],"architecture":{"nodes":[{"id":"ids","label":"input_ids [1,T]","detail":""},{"id":"emb","label":"Embedding 178 x 512","detail":"91,136 params"},{"id":"cnn","label":"3 x (Conv1d k5 + LayerNorm + LeakyReLU)","detail":"3,938,304 params"},{"id":"lstm","label":"BiLSTM 512 -> 512","detail":"1,576,960 params"},{"id":"ten","label":"t_en [1,512,T]","detail":""},{"id":"aln","label":"pred_aln_trg [1,T,F]","detail":"from the alignment"},{"id":"mm","label":"matmul","detail":"t_en @ aln"},{"id":"asr","label":"asr [1,512,F]","detail":"to the decoder"}],"edges":[["ids","emb","[1,T]"],["emb","cnn","[1,512,T]"],["cnn","lstm","[1,T,512]"],["lstm","ten","[1,512,T]"],["ten","mm","[1,512,T]"],["aln","mm","[1,T,F]"],["mm","asr","[1,512,F]"]]},"cost":{"params":5606400,"bytes":22425600,"notes":"5,606,400 parameters: embedding 91,136, CNN 3,938,304, BiLSTM 1,576,960. Approximate multiply-accumulates from shapes (conv, LSTM only): T=55 about 0.3 G, T=512 about 2.82 G. Mac CPU wall time, median of 3 warm runs, torch 2.14.1, 8 threads. This is a Mac, not an iPhone. Sentence: 2.73 ms."},"sources":["kokoro/modules.py (TextEncoder)","kokoro/model.py","raw/82m/record82.json","raw/82m/params82.json"],"group":"Inference chain","see25":"student","see25_note":"The student's text head (Linear 256 to 512, transposed) produces t_en directly. The 25 MB Swift glue then repeats it per frame."},{"id":"decoder","title":"Decoder (AdaIN Blocks at Frame Rate)","difficulty":"Hard","problem":"Combine text, pitch and noise into one feature map that the generator can turn into a spectrum. The Decoder shrinks F0 and N from 2F to F with two stride-2 convs, concatenates [asr, F0, N] (514 channels), and runs an encode block and four decode blocks. Each block is an AdaIN residual block steered by the acoustic style ref_s[:, :128]. The last decode block upsamples 2x to 512 channels at 2F.","inputs":[{"name":"asr","shape":"[1, 512, F]","dtype":"float32","meaning":"aligned text features"},{"name":"F0_curve","shape":"[1, 2F]","dtype":"float32","meaning":"pitch"},{"name":"N","shape":"[1, 2F]","dtype":"float32","meaning":"noise curve"},{"name":"s","shape":"[1, 128]","dtype":"float32","meaning":"acoustic style ref_s[:, :128]"}],"outputs":[{"name":"x","shape":"[1, 512, 2F]","dtype":"float32","meaning":"decoder features, input to the generator (the generator also receives F0_curve and s)"}],"constraints":["F0_conv and N_conv are Conv1d(1, 1, k3, stride 2), so 2F becomes F (the shapes below confirm it).","Every decode block gets [x, asr_res, F0, N] concatenated first: 1024 + 64 + 1 + 1 = 1090 channels. The res flag only turns off after the upsampling block, which is the last one.","asr_res is a 1x1 conv 512 to 64 on asr.","Style enters only through AdaIN (Linear 128 to 2C for gamma and beta in every norm).","All blocks scale their sum by 1/sqrt(2). Dropout is off in eval."],"examples":[{"label":"Example 1: \"nice\" (F = 53)","input":"asr [1, 512, 53], F0 [1, 106], N [1, 106]","output":"F0_conv [1, 1, 53]\nN_conv [1, 1, 53]\nencode [1, 1024, 53]\nasr_res [1, 64, 53]\ndecode0 [1, 1024, 53]\ndecode1 [1, 1024, 53]\ndecode2 [1, 1024, 53]\ndecode3 [1, 512, 106]","explanation":"Shapes are recorded with forward hooks. The decoder body (without the generator) took a median of 11.17 ms here."},{"label":"Example 2: 11-word sentence (F = 137)","input":"asr [1, 512, 137], F0 [1, 274]","output":"F0_conv [1, 1, 137]\nN_conv [1, 1, 137]\nencode [1, 1024, 137]\nasr_res [1, 64, 137]\ndecode0 [1, 1024, 137]\ndecode1 [1, 1024, 137]\ndecode2 [1, 1024, 137]\ndecode3 [1, 512, 274]","explanation":"Median 13.31 ms on Mac CPU for the decoder body, 5.8% of the chain. The 25 MB chain's vocoder (a quarter-width, int8 version) does this and the generator together."},{"label":"Example 3: the T = 512 case (F = 1077)","input":"asr [1, 512, 1077]","output":"F0_conv [1, 1, 1077]\nN_conv [1, 1, 1077]\nencode [1, 1024, 1077]\nasr_res [1, 64, 1077]\ndecode0 [1, 1024, 1077]\ndecode1 [1, 1024, 1077]\ndecode2 [1, 1024, 1077]\ndecode3 [1, 512, 2154]","explanation":"Median 47.21 ms. The 1024-channel blocks make this the heaviest part before the generator."}],"approach":[{"name":"Stride-2 pitch/noise convs","detail":"Bring the 2F-rate curves down to the frame rate so they can be concatenated with asr."},{"name":"AdaIN residual blocks","detail":"InstanceNorm, then (1 + gamma) * x + beta with the style, LeakyReLU, conv k3, twice, plus a learned or identity shortcut."},{"name":"Skip concatenation","detail":"asr_res, F0 and N are re-fed into every block until the first upsample, so the text and pitch cues do not wash out."},{"name":"2x upsample in the last block","detail":"ConvTranspose on the main path and nearest-neighbour on the shortcut."}],"pseudocode":"def decoder(asr, f0, n, s):                    # s = ref_s[:, :128]\n    f0s, ns = f0_conv(f0), n_conv(n)             # 2F -> F\n    x = encode(cat([asr, f0s, ns]), s)           # 514 -> 1024\n    res = asr_res(asr)                           # 512 -> 64\n    for blk in decode:                           # 4 blocks, last one x2 up\n        x = cat([x, res, f0s, ns])               # 1090 ch\n        x = blk(x, s)\n    return x                                     # [1,512,2F] to the generator","code":[{"file":"kokoro/istftnet.py","lines":"384-421","lang":"python","snippet":"class Decoder(nn.Module):\n    def __init__(self, dim_in, style_dim, dim_out, \n                 resblock_kernel_sizes,\n                 upsample_rates,\n                 upsample_initial_channel,\n                 resblock_dilation_sizes,\n                 upsample_kernel_sizes,\n                 gen_istft_n_fft, gen_istft_hop_size,\n                 disable_complex=False):\n        super().__init__()\n        self.encode = AdainResBlk1d(dim_in + 2, 1024, style_dim)\n        self.decode = nn.ModuleList()\n        self.decode.append(AdainResBlk1d(1024 + 2 + 64, 1024, style_dim))\n        self.decode.append(AdainResBlk1d(1024 + 2 + 64, 1024, style_dim))\n        self.decode.append(AdainResBlk1d(1024 + 2 + 64, 1024, style_dim))\n        self.decode.append(AdainResBlk1d(1024 + 2 + 64, 512, style_dim, upsample=True))\n        self.F0_conv = weight_norm(nn.Conv1d(1, 1, kernel_size=3, stride=2, groups=1, padding=1))\n        self.N_conv = weight_norm(nn.Conv1d(1, 1, kernel_size=3, stride=2, groups=1, padding=1))\n        self.asr_res = nn.Sequential(weight_norm(nn.Conv1d(512, 64, kernel_size=1)))\n        self.generator = Generator(style_dim, resblock_kernel_sizes, upsample_rates, \n                                   upsample_initial_channel, resblock_dilation_sizes, \n                                   upsample_kernel_sizes, gen_istft_n_fft, gen_istft_hop_size, disable_complex=disable_complex)\n\n    def forward(self, asr, F0_curve, N, s):\n        F0 = self.F0_conv(F0_curve.unsqueeze(1))\n        N = self.N_conv(N.unsqueeze(1))\n        x = torch.cat([asr, F0, N], axis=1)\n        x = self.encode(x, s)\n        asr_res = self.asr_res(asr)\n        res = True\n        for block in self.decode:\n            if res:\n                x = torch.cat([x, asr_res, F0, N], axis=1)\n            x = block(x, s)\n            if block.upsample_type != \"none\":\n                res = False\n        x = self.generator(x, s, F0_curve)\n        return x"}],"architecture":{"nodes":[{"id":"asr","label":"asr [1,512,F]","detail":""},{"id":"f0","label":"F0_conv (k3, stride 2)","detail":"[1,2F] -> [1,1,F]"},{"id":"n","label":"N_conv (k3, stride 2)","detail":"[1,2F] -> [1,1,F]"},{"id":"cat","label":"concat [asr, F0, N]","detail":"514 channels"},{"id":"enc","label":"encode AdaIN block 514 -> 1024","detail":""},{"id":"res","label":"asr_res Conv1d 512 -> 64","detail":""},{"id":"d1","label":"decode x3, 1090 -> 1024","detail":"each gets [x, asr_res, F0, N]"},{"id":"d2","label":"decode block 1090 -> 512, 2x up","detail":""},{"id":"gen","label":"x [1,512,2F]","detail":"to the generator"}],"edges":[["asr","cat","[1,512,F]"],["f0","cat","[1,1,F]"],["n","cat","[1,1,F]"],["cat","enc","[1,514,F]"],["asr","res","[1,512,F]"],["enc","d1","[1,1024,F]"],["res","d1","[1,64,F]"],["d1","d2","[1,1024,F]"],["d2","gen","[1,512,2F]"]]},"cost":{"params":33608680,"bytes":134434720,"notes":"decoder without the generator: 33,608,680 parameters (decoder total 53,276,190 minus generator 19,667,510), fp32 bytes from the state dict. Approximate multiply-accumulates from shapes (conv only): F=137 about 4.68 G, F=1077 about 36.8 G. Mac CPU wall time, median of 3 warm runs, torch 2.14.1, 8 threads. This is a Mac, not an iPhone. Sentence: 13.31 ms."},"sources":["kokoro/istftnet.py (Decoder, AdainResBlk1d)","raw/82m/record82.json","raw/82m/params82.json"],"group":"Inference chain","see25":"vocoder","see25_note":"The 25 MB vocoder is this decoder and the generator pruned to a quarter width, int8, and distilled. It runs as one Core ML model."},{"id":"generator","title":"iSTFTNet Generator to 24 kHz Audio","difficulty":"Hard","problem":"Turn decoder features into a waveform. The Generator first builds a source signal from F0: nine sine harmonics plus noise, merged by a Linear 9 to 1 and a tanh (SineGen and SourceModuleHnNSF). Its STFT (n_fft 20, hop 5) gives 22 channels (11 magnitude + 11 phase). The decoder features are upsampled 10x and 6x with ConvTranspose layers, the source is added at each step, and Snake/AdaIN residual blocks (kernels 3, 7, 11) clean up. conv_post makes 22 channels. exp() of the first 11 is the magnitude, sin() of the last 11 is the phase. A torch.istft with n_fft 20 and hop 5 gives 24 kHz audio.","inputs":[{"name":"x","shape":"[1, 512, 2F]","dtype":"float32","meaning":"decoder features"},{"name":"s","shape":"[1, 128]","dtype":"float32","meaning":"acoustic style"},{"name":"F0_curve","shape":"[1, 2F]","dtype":"float32","meaning":"pitch, used for the source"}],"outputs":[{"name":"audio","shape":"[600F]","dtype":"float32","meaning":"mono waveform at 24,000 Hz, roughly -1 to 1"}],"constraints":["Total upsampling is 10 x 6 x 5 (hop) = 300 samples per pitch value, so the audio has 2F x 300 = 600F samples.","SineGen uses torch.rand for a random initial phase on harmonics 2 to 9 and torch.randn for noise, so the audio changes with the seed. These examples call torch.manual_seed(0) right before the decoder.","A pitch value above 10 Hz counts as voiced (voiced_threshod = 10). Voiced: sine amplitude 0.1, noise std 0.003. Unvoiced: noise std 0.1/3 only.","The phase is computed at a 300x lower rate: interpolate F0 by 1/300, cumsum, interpolate the phase back up.","The last upsample is followed by a 1-sample reflection pad so the frame count is 120F + 1 for the inverse STFT.","KModel uses TorchSTFT (complex tensors) by default. disable_complex=True swaps in CustomSTFT (conv-based) for exporters."],"examples":[{"label":"Example 1: \"nice\" (F = 53)","input":"x [1, 512, 106], F0 [1, 106], seed 0","output":"f0_upsamp [1, 1, 31800] (= 600F = 31800); source [1, 31800, 1]\nnoise_convs0 [1, 256, 1060], ups0 [1, 256, 1060]; noise_convs1 [1, 128, 6361], ups1 [1, 128, 6360] (+1 reflection pad)\nresblock outputs ['[1, 128, 6361]', '[1, 256, 1060]']; conv_post [1, 22, 6361] = 11 log-magnitude + 11 phase\naudio 31800 samples = 1.325 s (31800 = 600 x 53: True); peak 0.3473, rms 0.0448\naudio[mid:mid+8] = [0.0441, 0.0451, 0.0407, 0.0427, 0.0389, 0.0342, 0.0265, 0.0268]","explanation":"1.325 s of audio. The 25 MB chain made 33000 samples (1.375 s) for the same text because its student predicted F = 55. Generator median 83.12 ms (source 3.77 ms, forward STFT 0.48 ms, inverse STFT 0.62 ms, upsampling and resblocks 78.33 ms)."},{"label":"Example 2: 11-word sentence (F = 137)","input":"x [1, 512, 274], F0 [1, 274], seed 0","output":"f0_upsamp [1, 1, 82200] (= 600F = 82200); source [1, 82200, 1]\nnoise_convs0 [1, 256, 2740], ups0 [1, 256, 2740]; noise_convs1 [1, 128, 16441], ups1 [1, 128, 16440] (+1 reflection pad)\nresblock outputs ['[1, 128, 16441]', '[1, 256, 2740]']; conv_post [1, 22, 16441] = 11 log-magnitude + 11 phase\naudio 82200 samples = 3.425 s (82200 = 600 x 137: True); peak 0.367, rms 0.0459\naudio[mid:mid+8] = [-0.0021, -0.0021, -0.002, -0.002, -0.0019, -0.0021, -0.0021, -0.0022]","explanation":"3.425 s versus 3.375 s in the 25 MB chain (F 137 against 135). Peak 0.367 against 0.3244. Generator median 175.91 ms, which is 76.7% of the 229.48 ms chain. Source 9.32 ms, forward STFT 0.74 ms, inverse STFT 1.17 ms, upsampling and resblocks 164.78 ms. Real-time factor of the whole chain 0.067 (chain time / audio time), on Mac CPU."},{"label":"Example 3: the T = 512 case (F = 1077)","input":"x [1, 512, 2154], F0 [1, 2154], seed 0","output":"f0_upsamp [1, 1, 646200] (= 600F = 646200); source [1, 646200, 1]\nnoise_convs0 [1, 256, 21540], ups0 [1, 256, 21540]; noise_convs1 [1, 128, 129241], ups1 [1, 128, 129240] (+1 reflection pad)\nresblock outputs ['[1, 128, 129241]', '[1, 256, 21540]']; conv_post [1, 22, 129241] = 11 log-magnitude + 11 phase\naudio 646200 samples = 26.925 s (646200 = 600 x 1077: True); peak 0.3995, rms 0.0492\naudio[mid:mid+8] = [0.0062, 0.0114, 0.0135, 0.0192, 0.02, 0.0215, 0.0201, 0.0181]","explanation":"26.925 s of audio versus 29.525 s in the 25 MB chain (F = 1181). Generator median 1586.3 ms of the 1816.47 ms chain. The generator's upsampling and resblocks run at the 120F rate and dominate: 1497.74 ms."}],"approach":[{"name":"Harmonic-plus-noise source (hn-NSF)","detail":"Nine harmonics of F0, voiced/unvoiced noise, and a learned 9 to 1 merge give the network a periodic excitation to shape."},{"name":"Low-rate phase accumulation","detail":"Phase is the cumulative sum of F0/24000 at 1/300 of the sample rate, then linearly interpolated back up."},{"name":"Transposed-conv upsampling","detail":"ConvTranspose1d with kernel 20 stride 10, then kernel 12 stride 6."},{"name":"Snake/AdaIN residual blocks","detail":"AdaIN, then x + sin(a*x)^2 / a (Snake), then dilated convs (1, 3, 5). Three kernel sizes (3, 7, 11) are averaged."},{"name":"Source injection","detail":"noise_convs bring the source STFT to each stage's rate and noise_res cleans it before it is added."},{"name":"iSTFTNet head","detail":"The network predicts a small STFT (n_fft 20, hop 5) and torch.istft makes the waveform, instead of upsampling all the way to 24 kHz."}],"pseudocode":"def generator(x, s, f0):                         # x [1,512,2F]\n    f0 = upsample(f0, 300)                        # [1, 600F, 1]\n    src = tanh(linear_9_1(sine_9_harmonics(f0) + noise))\n    har = cat(stft(src, 20, 5))                   # [1, 22, 120F+1]\n    for i, (u, k) in enumerate([(10, 20), (6, 12)]):\n        x = conv_transpose(leaky_relu(x, 0.1), k, stride=u)\n        x = x + noise_res[i](noise_conv[i](har), s)\n        x = mean(resblock(x, s) for resblock in kernels_3_7_11)\n    x = conv_post(leaky_relu(x))                  # [1, 22, 120F+1]\n    mag, phase = exp(x[:, :11]), sin(x[:, 11:])\n    return istft(mag * exp(1j * phase), n_fft=20, hop=5)   # [600F] samples","code":[{"file":"kokoro/istftnet.py","lines":"142-158","lang":"python","snippet":"    def _f02sine(self, f0_values):\n        \"\"\" f0_values: (batchsize, length, dim)\n            where dim indicates fundamental tone and overtones\n        \"\"\"\n        # convert to F0 in rad. The interger part n can be ignored\n        # because 2 * torch.pi * n doesn't affect phase\n        rad_values = (f0_values / self.sampling_rate) % 1\n        # initial phase noise (no noise for fundamental component)\n        rand_ini = torch.rand(f0_values.shape[0], f0_values.shape[2], device=f0_values.device)\n        rand_ini[:, 0] = 0\n        rad_values[:, 0, :] = rad_values[:, 0, :] + rand_ini\n        # instantanouse phase sine[t] = sin(2*pi \\sum_i=1 ^{t} rad)\n        if not self.flag_for_pulse:\n            rad_values = F.interpolate(rad_values.transpose(1, 2), scale_factor=1/self.upsample_scale, mode=\"linear\").transpose(1, 2)\n            phase = torch.cumsum(rad_values, dim=1) * 2 * torch.pi\n            phase = F.interpolate(phase.transpose(1, 2) * self.upsample_scale, scale_factor=self.upsample_scale, mode=\"linear\").transpose(1, 2)\n            sines = torch.sin(phase)"},{"file":"kokoro/istftnet.py","lines":"185-209","lang":"python","snippet":"    def forward(self, f0):\n        \"\"\" sine_tensor, uv = forward(f0)\n        input F0: tensor(batchsize=1, length, dim=1)\n                  f0 for unvoiced steps should be 0\n        output sine_tensor: tensor(batchsize=1, length, dim)\n        output uv: tensor(batchsize=1, length, 1)\n        \"\"\"\n        f0_buf = torch.zeros(f0.shape[0], f0.shape[1], self.dim, device=f0.device)\n        # fundamental component\n        fn = torch.multiply(f0, torch.FloatTensor([[range(1, self.harmonic_num + 2)]]).to(f0.device))\n        # generate sine waveforms\n        sine_waves = self._f02sine(fn) * self.sine_amp\n        # generate uv signal\n        # uv = torch.ones(f0.shape)\n        # uv = uv * (f0 > self.voiced_threshold)\n        uv = self._f02uv(f0)\n        # noise: for unvoiced should be similar to sine_amp\n        #        std = self.sine_amp/3 -> max value ~ self.sine_amp\n        #        for voiced regions is self.noise_std\n        noise_amp = uv * self.noise_std + (1 - uv) * self.sine_amp / 3\n        noise = noise_amp * torch.randn_like(sine_waves)\n        # first: set the unvoiced part to 0 by uv\n        # then: additive noise\n        sine_waves = sine_waves * uv + noise\n        return sine_waves, uv, noise"},{"file":"kokoro/istftnet.py","lines":"241-254","lang":"python","snippet":"    def forward(self, x):\n        \"\"\"\n        Sine_source, noise_source = SourceModuleHnNSF(F0_sampled)\n        F0_sampled (batchsize, length, 1)\n        Sine_source (batchsize, length, 1)\n        noise_source (batchsize, length 1)\n        \"\"\"\n        # source for harmonic branch\n        with torch.no_grad():\n            sine_wavs, uv, _ = self.l_sin_gen(x)\n        sine_merge = self.l_tanh(self.l_linear(sine_wavs))\n        # source for noise branch, in the same shape as uv\n        noise = torch.randn_like(uv) * self.sine_amp / 3\n        return sine_merge, noise, uv"},{"file":"kokoro/istftnet.py","lines":"299-325","lang":"python","snippet":"    def forward(self, x, s, f0):\n        with torch.no_grad():\n            f0 = self.f0_upsamp(f0[:, None]).transpose(1, 2)  # bs,n,t\n            har_source, noi_source, uv = self.m_source(f0)\n            har_source = har_source.transpose(1, 2).squeeze(1)\n            har_spec, har_phase = self.stft.transform(har_source)\n            har = torch.cat([har_spec, har_phase], dim=1)\n        for i in range(self.num_upsamples):\n            x = F.leaky_relu(x, negative_slope=0.1) \n            x_source = self.noise_convs[i](har)\n            x_source = self.noise_res[i](x_source, s)\n            x = self.ups[i](x)\n            if i == self.num_upsamples - 1:\n                x = self.reflection_pad(x)\n            x = x + x_source\n            xs = None\n            for j in range(self.num_kernels):\n                if xs is None:\n                    xs = self.resblocks[i*self.num_kernels+j](x, s)\n                else:\n                    xs += self.resblocks[i*self.num_kernels+j](x, s)\n            x = xs / self.num_kernels\n        x = F.leaky_relu(x)\n        x = self.conv_post(x)\n        spec = torch.exp(x[:,:self.post_n_fft // 2 + 1, :])\n        phase = torch.sin(x[:, self.post_n_fft // 2 + 1:, :])\n        return self.stft.inverse(spec, phase)"},{"file":"kokoro/istftnet.py","lines":"89-100","lang":"python","snippet":"    def transform(self, input_data):\n        forward_transform = torch.stft(\n            input_data,\n            self.filter_length, self.hop_length, self.win_length, window=self.window.to(input_data.device),\n            return_complex=True)\n        return torch.abs(forward_transform), torch.angle(forward_transform)\n\n    def inverse(self, magnitude, phase):\n        inverse_transform = torch.istft(\n            magnitude * torch.exp(phase * 1j),\n            self.filter_length, self.hop_length, self.win_length, window=self.window.to(magnitude.device))\n        return inverse_transform.unsqueeze(-2)  # unsqueeze to stay consistent with conv_transpose1d implementation"}],"architecture":{"nodes":[{"id":"f0","label":"F0_curve [1,2F]","detail":"Hz"},{"id":"up","label":"nearest upsample x300","detail":"[1,600F,1]"},{"id":"src","label":"SineGen 9 harmonics + noise, Linear 9->1, tanh","detail":"10 parameters (l_linear)"},{"id":"stft","label":"STFT n_fft 20, hop 5","detail":"11 mag + 11 phase"},{"id":"x","label":"decoder x [1,512,2F]","detail":""},{"id":"u0","label":"ConvTranspose k20 s10 + noise_res + 3 resblocks","detail":"512 -> 256"},{"id":"u1","label":"ConvTranspose k12 s6 + reflect pad + noise_res + 3 resblocks","detail":"256 -> 128"},{"id":"post","label":"conv_post k7","detail":"128 -> 22"},{"id":"ep","label":"exp(first 11), sin(last 11)","detail":"magnitude, phase"},{"id":"is","label":"inverse STFT (n_fft 20, hop 5)","detail":"torch.istft"},{"id":"au","label":"audio [600F]","detail":"24 kHz float32"}],"edges":[["f0","up","[1,2F]"],["up","src","[1,600F,1]"],["src","stft","[1,600F]"],["stft","u0","[1,22,120F+1]"],["x","u0","[1,512,2F]"],["u0","u1","[1,256,20F]"],["stft","u1","[1,22,120F+1]"],["u1","post","[1,128,120F+1]"],["post","ep","[1,22,120F+1]"],["ep","is","[1,11,120F+1] x2"],["is","au","[600F]"]]},"cost":{"params":19667510,"bytes":78670040,"notes":"19,667,510 parameters: resblocks 12,125,952, noise convs and noise_res 4,505,984, ups 3,015,808, conv_post 19,756, source merge 10. Approximate multiply-accumulates from shapes (conv only, excludes sin/exp and the STFTs): F=137 about 84.2 G, F=1077 about 662.2 G. Mac CPU wall time, median of 3 warm runs, torch 2.14.1, 8 threads. This is a Mac, not an iPhone. Sentence: 175.91 ms of the 229.48 ms chain."},"sources":["kokoro/istftnet.py (Generator, SineGen, SourceModuleHnNSF, AdaINResBlock1, TorchSTFT)","kokoro/custom_stft.py (CustomSTFT, disable_complex)","hexgrad/Kokoro-82M config.json (istftnet)","raw/82m/record82.json","raw/82m/params82.json"],"group":"Inference chain","see25":"vocoder","see25_note":"In the 25 MB chain the source and STFT run in Swift (see page problems source and istft), and the quarter-width int8 vocoder replaces this network. Its noise is SplitMix64 seed 0 and it omits the random initial phase."}];
+(function () {
+  var NR = 'not recorded';
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+  var pad = function (i) { return (i < 9 ? '0' : '') + (i + 1); };
+  var fmt = function (v) { return v === null || v === undefined || v === '' ? NR : (typeof v === 'number' ? v.toLocaleString('en-US') : String(v)); };
+  var NCHAIN = STAGES.length;
+  var URL25 = "";
+  var cur = 0, tab = 'pseudo';
+  try { var t = localStorage.getItem('kdd-tab'); if (t === 'pseudo' || t === 'real') tab = t; } catch (e) {}
+
+  /* ---------- tiny highlighter ---------- */
+  var KW = {
+    python: 'def class return if elif else for while in not and or is import from as with try except finally raise lambda yield pass break continue None True False assert global nonlocal del async await',
+    swift: 'func let var if else guard return for while in switch case default struct class enum protocol extension import init self Self nil true false throw throws try catch do as is static private public internal fileprivate where defer inout some any async await break continue repeat typealias subscript override final lazy weak'
+  };
+  var KWSET = {};
+  Object.keys(KW).forEach(function (k) { var o = {}; KW[k].split(' ').forEach(function (w) { o[w] = 1; }); KWSET[k] = o; });
+  var RX = {
+    python: /(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|[rbfRBF]{0,2}"(?:\\.|[^"\\\n])*"|[rbfRBF]{0,2}'(?:\\.|[^'\\\n])*')|(\b0[xX][0-9a-fA-F_]+\b|\b\d[\d_]*\.?\d*(?:[eE][+-]?\d+)?\b)|([A-Za-z_][A-Za-z_0-9]*)/g,
+    swift: /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("""[\s\S]*?"""|"(?:\\.|[^"\\\n])*")|(\b0[xX][0-9a-fA-F_]+\b|\b\d[\d_]*\.?\d*(?:[eE][+-]?\d+)?\b)|([A-Za-z_][A-Za-z_0-9]*)/g
+  };
+  function highlight(src, lang) {
+    var l = lang === 'swift' ? 'swift' : 'python';
+    var rx = new RegExp(RX[l].source, 'g');
+    var out = '', last = 0, m, kws = KWSET[l];
+    while ((m = rx.exec(src)) !== null) {
+      out += esc(src.slice(last, m.index));
+      last = m.index + m[0].length;
+      var s = esc(m[0]);
+      if (m[1] !== undefined) out += '<span class="t-com">' + s + '</span>';
+      else if (m[2] !== undefined) out += '<span class="t-str">' + s + '</span>';
+      else if (m[3] !== undefined) out += '<span class="t-num">' + s + '</span>';
+      else if (kws[m[4]]) out += '<span class="t-kw">' + s + '</span>';
+      else {
+        var nx = src.charAt(last);
+        var prev = src.slice(Math.max(0, m.index - 5), m.index);
+        if (nx === '(' && /(?:def |func )$/.test(prev)) out += '<span class="t-fn">' + s + '</span>';
+        else if (/(?:def |func |class |struct |enum )$/.test(prev)) out += '<span class="t-fn">' + s + '</span>';
+        else out += s;
+      }
+    }
+    return out + esc(src.slice(last));
+  }
+
+  /* ---------- chrome ---------- */
+  function buildChrome() {
+    var p = '<div class="pipe-group chain"><span class="pipe-label">Inference</span>';
+    for (var i = 0; i < NCHAIN; i++) p += '<button class="pchip" data-i="' + i + '" title="' + esc(STAGES[i].title) + '">' + pad(i) + ' ' + esc(STAGES[i].id) + '</button>';
+    p += '</div>';
+    $('pipe').innerHTML = p;
+    var l = '<div class="gh">Inference chain</div>';
+    STAGES.forEach(function (s, i) {
+      if (i === NCHAIN) l += '<div class="gh">Training recipes</div>';
+      l += '<button class="item" data-i="' + i + '"><span class="n">' + pad(i) + '</span><span>' + esc(s.title) + '</span><span class="pill ' + esc(s.difficulty) + '">' + esc(s.difficulty) + '</span></button>';
+    });
+    $('list').innerHTML = l;
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('[data-i]') : null;
+      if (b) go(parseInt(b.getAttribute('data-i'), 10), true);
+    });
+  }
+
+  /* ---------- diagram ---------- */
+  function wrap(text, n) {
+    var words = String(text).split(/\s+/).filter(Boolean), lines = [], cur = '';
+    words.forEach(function (w) {
+      while (w.length > n) { if (cur) { lines.push(cur); cur = ''; } lines.push(w.slice(0, n)); w = w.slice(n); }
+      if (!cur) cur = w; else if ((cur + ' ' + w).length <= n) cur += ' ' + w; else { lines.push(cur); cur = w; }
+    });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+  function diagram(arch) {
+    var nodes = arch.nodes, edges = arch.edges;
+    if (!nodes || !nodes.length) return '<p>' + NR + '</p>';
+    var CPX = 7, NW = 384, X0 = 24, GAP = 40, PADY = 9, LH = 16, DH = 15;
+    var cx = X0 + NW / 2, xr = X0 + NW;
+    var pos = {}, y = 14, i;
+    var boxes = nodes.map(function (n, idx) {
+      var lab = wrap(n.label, Math.floor((NW - 24) / CPX));
+      var det = n.detail ? wrap(n.detail, Math.floor((NW - 24) / CPX)) : [];
+      var h = PADY * 2 + lab.length * LH + det.length * DH;
+      var b = { n: n, lab: lab, det: det, y: y, h: h, idx: idx };
+      pos[n.id] = b; y += h + GAP; return b;
+    });
+    var H = y - GAP + 14;
+    var straight = [], skips = [];
+    edges.forEach(function (e) {
+      var a = pos[e[0]], b = pos[e[1]];
+      if (!a || !b) return;
+      if (b.idx === a.idx + 1) straight.push([a, b, e[2]]); else skips.push([a, b, e[2], Math.abs(b.idx - a.idx)]);
+    });
+    skips.sort(function (p, q) { return p[3] - q[3]; });
+    var maxOff = 0, svg = '', labels = [];
+    skips.forEach(function (s, k) { s.off = 26 + 16 * k; maxOff = Math.max(maxOff, s.off); });
+    var lx = xr + maxOff + 14;
+    var maxLab = 0;
+    straight.forEach(function (s) { maxLab = Math.max(maxLab, (s[2] || '').length * CPX); });
+    skips.forEach(function (s) { maxLab = Math.max(maxLab, (s[2] || '').length * CPX); });
+    var W = Math.max(xr + 20, lx + maxLab + 8, cx + 14 + maxLab + 8);
+    if (!skips.length) W = Math.max(xr + 10, cx + 14 + maxLab + 8);
+    svg += '<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker></defs>';
+    boxes.forEach(function (b) {
+      svg += '<rect class="nd" x="' + X0 + '" y="' + b.y + '" width="' + NW + '" height="' + b.h + '" rx="4"/>';
+      var ty = b.y + PADY + 12;
+      b.lab.forEach(function (ln, k) { svg += '<text class="nl" x="' + (X0 + 12) + '" y="' + (ty + k * LH) + '">' + esc(ln) + '</text>'; });
+      var dy = b.y + PADY + b.lab.length * LH + 11;
+      b.det.forEach(function (ln, k) { svg += '<text class="nt" x="' + (X0 + 12) + '" y="' + (dy + k * DH) + '">' + esc(ln) + '</text>'; });
+    });
+    straight.forEach(function (s) {
+      var y1 = s[0].y + s[0].h, y2 = s[1].y;
+      svg += '<path class="ed" d="M' + cx + ',' + y1 + ' L' + cx + ',' + (y2 - 1) + '" marker-end="url(#arr)"/>';
+      if (s[2]) svg += '<text class="el" x="' + (cx + 10) + '" y="' + ((y1 + y2) / 2 + 4) + '">' + esc(s[2]) + '</text>';
+    });
+    var lblSlots = [];
+    skips.forEach(function (s) {
+      var a = s[0], b = s[1], off = s.off;
+      var y1 = a.y + a.h / 2, y2 = b.y + b.h / 2;
+      // spread attachment points on source/target vertically a bit to avoid exact overlap
+      svg += '<path class="ed" d="M' + xr + ',' + y1 + ' C' + (xr + off) + ',' + y1 + ' ' + (xr + off) + ',' + y2 + ' ' + xr + ',' + (y2) + '" marker-end="url(#arr)"/>';
+      labels.push({ y: (y1 + y2) / 2, px: xr + off * 0.75, t: s[2] });
+    });
+    labels.sort(function (p, q) { return p.y - q.y; });
+    var lastY = -1e9;
+    labels.forEach(function (l) {
+      var ly = Math.max(l.y, lastY + 15); lastY = ly;
+      if (!l.t) return;
+      svg += '<path class="ld" d="M' + l.px + ',' + l.y + ' L' + (lx - 3) + ',' + (ly - 4) + '"/>';
+      svg += '<text class="el" x="' + lx + '" y="' + ly + '">' + esc(l.t) + '</text>';
+      if (ly + 6 > H) H = ly + 10;
+    });
+    return '<div class="diagram"><svg role="img" aria-label="Architecture diagram" width="' + Math.ceil(W) + '" height="' + Math.ceil(H) + '" viewBox="0 0 ' + Math.ceil(W) + ' ' + Math.ceil(H) + '">' + svg + '</svg></div>';
+  }
+
+  /* ---------- render ---------- */
+  function ioTable(rows) {
+    if (!rows || !rows.length) return '<p>' + NR + '</p>';
+    var h = '<div class="tw"><table><thead><tr><th>Name</th><th>Shape</th><th>Dtype</th><th>Meaning</th></tr></thead><tbody>';
+    rows.forEach(function (r) { h += '<tr><td class="name">' + esc(fmt(r.name)) + '</td><td class="m">' + esc(fmt(r.shape)) + '</td><td class="m">' + esc(fmt(r.dtype)) + '</td><td>' + esc(fmt(r.meaning)) + '</td></tr>'; });
+    return h + '</tbody></table></div>';
+  }
+  function renderMain(s, i) {
+    var h = '<div class="title-row"><h1><span class="num">' + pad(i) + '</span>' + esc(s.title) + '</h1><span class="pill ' + esc(s.difficulty) + '">' + esc(s.difficulty) + '</span></div>';
+    h += '<h2>Problem</h2><p>' + esc(fmt(s.problem)) + '</p>';
+    h += '<h2>Input</h2>' + ioTable(s.inputs) + '<h2>Output</h2>' + ioTable(s.outputs);
+    h += '<h2>Constraints</h2>';
+    h += s.constraints && s.constraints.length ? '<ul class="cons">' + s.constraints.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' : '<p>' + NR + '</p>';
+    h += '<h2>Examples</h2>';
+    if (s.examples && s.examples.length) {
+      s.examples.forEach(function (ex, k) {
+        var label = ex.label && /^Example\s*\d+/i.test(ex.label) ? ex.label : 'Example ' + (k + 1) + ':' + (ex.label ? ' ' + ex.label : '');
+        h += '<div class="ex-h">' + esc(label) + '</div><div class="ex">' +
+          '<div><span class="k">Input:</span>' + esc(fmt(ex.input)) + '</div>' +
+          '<div><span class="k">Output:</span>' + esc(fmt(ex.output)) + '</div>' +
+          '<div><span class="k">Explanation:</span>' + esc(fmt(ex.explanation)) + '</div></div>';
+      });
+    } else h += '<p>' + NR + '</p>';
+    h += '<h2>Approach</h2>';
+    h += s.approach && s.approach.length ? '<ol class="appr">' + s.approach.map(function (a) { return '<li><b>' + esc(fmt(a.name)) + '</b>' + esc(fmt(a.detail)) + '</li>'; }).join('') + '</ol>' : '<p>' + NR + '</p>';
+    h += '<h2>Architecture</h2>' + diagram(s.architecture || {});
+    h += '<h2>In the 25 MB chain</h2><p class="see25">' + (s.see25_note ? esc(s.see25_note) + ' ' : '') + (s.see25 && URL25 ? '<a href="' + URL25 + '#' + encodeURIComponent(s.see25) + '">See 25 MB version: ' + esc(s.see25) + ' \u2192</a>' : '') + '</p>';
+    h += '<h2>Sources</h2>';
+    h += s.sources && s.sources.length ? '<ul class="src">' + s.sources.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '<p>' + NR + '</p>';
+    var pv = STAGES[i - 1], nx = STAGES[i + 1];
+    h += '<div class="pn"><button class="btn prev" data-i="' + (i - 1) + '"' + (pv ? '' : ' disabled') + '><small>Previous</small>' + (pv ? esc(pad(i - 1) + ' ' + pv.title) : '-') + '</button>' +
+      '<button class="btn next" data-i="' + (i + 1) + '"' + (nx ? '' : ' disabled') + '><small>Next</small>' + (nx ? esc(pad(i + 1) + ' ' + nx.title) : '-') + '</button></div>';
+    $('main').innerHTML = h;
+  }
+  function codeHTML(s) {
+    if (tab === 'pseudo') {
+      return s.pseudocode ? '<pre class="code">' + highlight(s.pseudocode, 'python') + '</pre>' : '<pre class="code">' + NR + '</pre>';
+    }
+    if (!s.code || !s.code.length) return '<pre class="code">' + NR + '</pre>';
+    return s.code.map(function (c) {
+      return '<div class="snip-h">' + esc(c.file) + ':' + esc(c.lines) + '</div><pre class="code">' + highlight(c.snippet || '', c.lang) + '</pre>';
+    }).join('');
+  }
+  function renderCode(s) {
+    var c = s.cost || {};
+    var h = '<div class="panel"><div class="tabs" role="tablist">' +
+      '<button class="tab" role="tab" data-tab="pseudo" aria-selected="' + (tab === 'pseudo') + '">Pseudocode</button>' +
+      '<button class="tab" role="tab" data-tab="real" aria-selected="' + (tab === 'real') + '">Real code</button></div>' +
+      '<div class="codebody" id="codebody" role="tabpanel">' + codeHTML(s) + '</div></div>';
+    h += '<div class="cost"><h3>Complexity</h3><dl><dt>Params</dt><dd>' + esc(fmt(c.params)) + '</dd><dt>Bytes</dt><dd>' + esc(fmt(c.bytes)) + '</dd></dl>' +
+      '<p>' + esc(fmt(c.notes)) + '</p></div>';
+    $('codecol').innerHTML = h;
+    Array.prototype.forEach.call($('codecol').querySelectorAll('.tab'), function (b) {
+      b.addEventListener('click', function () {
+        tab = b.getAttribute('data-tab');
+        try { localStorage.setItem('kdd-tab', tab); } catch (e) {}
+        renderCode(STAGES[cur]);
+      });
+    });
+  }
+  function mark() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-i].item, [data-i].pchip'), function (b) {
+      b.setAttribute('aria-current', parseInt(b.getAttribute('data-i'), 10) === cur ? 'true' : 'false');
+    });
+    var a = document.querySelector('#list .item[aria-current="true"]');
+    if (a && a.scrollIntoView) { try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} }
+    var p = document.querySelector('#pipe .pchip[aria-current="true"]');
+    if (p) { var pr = $('pipe'); var left = p.offsetLeft - pr.clientWidth / 2 + p.offsetWidth / 2; pr.scrollLeft = Math.max(0, left); }
+  }
+  function go(i, push) {
+    if (i < 0 || i >= STAGES.length) return;
+    cur = i;
+    var s = STAGES[i];
+    renderMain(s, i); renderCode(s); mark();
+    if (push && location.hash !== '#' + s.id) { try { history.replaceState(null, '', '#' + s.id); } catch (e) { location.hash = s.id; } }
+    document.title = pad(i) + ' ' + s.title + ' | Kokoro 82M Deep Dive';
+    if (push) window.scrollTo(0, 0);
+  }
+  function fromHash() {
+    var id = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    for (var i = 0; i < STAGES.length; i++) if (STAGES[i].id === id) return i;
+    return -1;
+  }
+  function measure() {
+    var h = $('top').offsetHeight;
+    document.documentElement.style.setProperty('--hh', h + 'px');
+  }
+  buildChrome();
+  var h0 = fromHash();
+  go(h0 >= 0 ? h0 : 0, false);
+  measure();
+  window.addEventListener('resize', measure);
+  if (window.ResizeObserver) new ResizeObserver(measure).observe($('top'));
+  window.addEventListener('hashchange', function () { var i = fromHash(); if (i >= 0 && i !== cur) go(i, true); });
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target, tn = t && t.tagName;
+    if (tn === 'INPUT' || tn === 'TEXTAREA' || tn === 'SELECT' || (t && t.isContentEditable)) return;
+    var d = (e.key === 'ArrowDown' || e.key === 'j') ? 1 : (e.key === 'ArrowUp' || e.key === 'k') ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    go(cur + d, true);
+  });
+})();
+</script>
+
+</body>
+</html>

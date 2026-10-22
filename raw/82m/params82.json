@@ -1,0 +1,142 @@
+{
+ "bert": {
+  "params": 6292480,
+  "bytes": 25169920,
+  "tensors": 25
+ },
+ "bert_dtypes": [
+  "torch.float32"
+ ],
+ "bert_position_ids": [],
+ "bert_embeddings": {
+  "params": 88832,
+  "bytes": 355328,
+  "tensors": 5
+ },
+ "bert_embedding_hidden_mapping_in": {
+  "params": 99072,
+  "bytes": 396288,
+  "tensors": 2
+ },
+ "bert_shared_layer": {
+  "params": 5513984,
+  "bytes": 22055936,
+  "tensors": 16
+ },
+ "bert_encoder": {
+  "params": 393728,
+  "bytes": 1574912,
+  "tensors": 2
+ },
+ "predictor": {
+  "params": 16194612,
+  "bytes": 64778448,
+  "tensors": 122
+ },
+ "predictor.text_encoder": {
+  "params": 5913600,
+  "bytes": 23654400,
+  "tensors": 30
+ },
+ "predictor.lstm": {
+  "params": 1839104,
+  "bytes": 7356416,
+  "tensors": 8
+ },
+ "predictor.duration_proj": {
+  "params": 25650,
+  "bytes": 102600,
+  "tensors": 2
+ },
+ "predictor.shared": {
+  "params": 1839104,
+  "bytes": 7356416,
+  "tensors": 8
+ },
+ "predictor.F0": {
+  "params": 3288320,
+  "bytes": 13153280,
+  "tensors": 35
+ },
+ "predictor.N": {
+  "params": 3288320,
+  "bytes": 13153280,
+  "tensors": 35
+ },
+ "predictor.F0_proj": {
+  "params": 257,
+  "bytes": 1028,
+  "tensors": 2
+ },
+ "predictor.N_proj": {
+  "params": 257,
+  "bytes": 1028,
+  "tensors": 2
+ },
+ "decoder_total": {
+  "params": 53276190,
+  "bytes": 213104760,
+  "tensors": 375
+ },
+ "generator": {
+  "params": 19667510,
+  "bytes": 78670040,
+  "tensors": 303
+ },
+ "decoder_without_generator": {
+  "params": 33608680,
+  "bytes": 134434720,
+  "tensors": 72
+ },
+ "generator_m_source": {
+  "params": 10,
+  "bytes": 40,
+  "tensors": 2
+ },
+ "generator_noise": {
+  "params": 4505984,
+  "bytes": 18023936,
+  "tensors": 76
+ },
+ "generator_ups": {
+  "params": 3015808,
+  "bytes": 12063232,
+  "tensors": 6
+ },
+ "generator_resblocks": {
+  "params": 12125952,
+  "bytes": 48503808,
+  "tensors": 216
+ },
+ "generator_conv_post": {
+  "params": 19756,
+  "bytes": 79024,
+  "tensors": 3
+ },
+ "text_encoder": {
+  "params": 5606400,
+  "bytes": 22425600,
+  "tensors": 24
+ },
+ "text_encoder.embedding": {
+  "params": 91136,
+  "bytes": 364544,
+  "tensors": 1
+ },
+ "text_encoder.cnn": {
+  "params": 3938304,
+  "bytes": 15753216,
+  "tensors": 15
+ },
+ "text_encoder.lstm": {
+  "params": 1576960,
+  "bytes": 6307840,
+  "tensors": 8
+ },
+ "TOTAL": {
+  "params": 81763410,
+  "bytes": 327053640,
+  "mb_fp32": 327.05
+ },
+ "decoder_check": true
+}
