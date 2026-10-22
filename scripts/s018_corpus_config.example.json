@@ -1,0 +1,16 @@
+{
+  "target_tokens": {"ʧ": 3000, "ʤ": 3000, "A": 3000, "I": 3000, "O": 3000, "W": 3000, "Y": 3000},
+  "problem_words": ["chapter", "catch", "say", "nice", "okay", "wait", "gave", "life", "courage"],
+  "names": ["Chuck", "Jack", "Jane", "Jill", "Charlie", "Chloe", "Kate", "George", "Nora", "Ben", "Lena", "Omar"],
+  "focus_groups": [
+    {"name": "oy",
+     "count": 1400,
+     "nouns": ["boy", "joy", "voice", "choice", "oil", "point", "noise", "coin", "toy", "soil", "appointment", "employer", "oyster", "toilet", "loyalty"],
+     "verbs": ["enjoy", "join", "avoid", "boil", "annoy", "employ", "destroy", "rejoice", "poison", "appoint", "voice", "point"],
+     "adjectives": ["noisy", "joyful", "loyal", "royal", "moist", "spoiled"]}
+  ],
+  "n_targeted": 5200,
+  "n_general": 7000,
+  "seed": 1820,
+  "exclude": []
+}

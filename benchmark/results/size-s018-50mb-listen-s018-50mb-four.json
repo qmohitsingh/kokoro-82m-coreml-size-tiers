@@ -1,0 +1,54 @@
+[
+ {
+  "pairIndex": 0,
+  "mosB": 5,
+  "listener": "listener-1",
+  "sentenceId": "3s",
+  "aIsReference": false,
+  "choice": "tie",
+  "timestamp": "2026-10-21T19:59:57Z",
+  "arm": "s018-50mb",
+  "listenerIndex": 0,
+  "mosA": 5,
+  "set": "four"
+ },
+ {
+  "pairIndex": 1,
+  "mosB": 5,
+  "listener": "listener-1",
+  "sentenceId": "7s",
+  "aIsReference": false,
+  "choice": "tie",
+  "timestamp": "2026-10-21T20:00:14Z",
+  "arm": "s018-50mb",
+  "listenerIndex": 0,
+  "mosA": 5,
+  "set": "four"
+ },
+ {
+  "pairIndex": 2,
+  "mosB": 5,
+  "listener": "listener-1",
+  "sentenceId": "15s",
+  "aIsReference": true,
+  "choice": "tie",
+  "timestamp": "2026-10-21T20:00:47Z",
+  "arm": "s018-50mb",
+  "listenerIndex": 0,
+  "mosA": 5,
+  "set": "four"
+ },
+ {
+  "pairIndex": 3,
+  "mosB": 5,
+  "listener": "listener-1",
+  "sentenceId": "30s",
+  "aIsReference": true,
+  "choice": "tie",
+  "timestamp": "2026-10-21T20:01:58Z",
+  "arm": "s018-50mb",
+  "listenerIndex": 0,
+  "mosA": 5,
+  "set": "four"
+ }
+]

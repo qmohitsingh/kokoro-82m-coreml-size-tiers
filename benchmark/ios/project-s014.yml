@@ -11,7 +11,7 @@ targets:
   KokoroSize:
     type: application
     platform: iOS
-    # Tier 50mb (S014 mixed8). Bundle id and optional signing come from Config-S014.xcconfig,
+    # Tier 50mb (S018). Bundle id and optional signing come from Config-S014.xcconfig,
     # which includes the git-ignored Signing.local.xcconfig when present.
     configFiles:
       Debug: Config-S014.xcconfig

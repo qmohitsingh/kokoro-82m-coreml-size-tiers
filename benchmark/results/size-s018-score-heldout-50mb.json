@@ -1,0 +1,1150 @@
+{
+ "voice": "af_heart",
+ "set": "heldout",
+ "chain": "50mb chain: student + Kokoro int8 pitch + int4 decoder + mixed8 generator, Mac Core ML CPU_ONLY, speed 1.0",
+ "transcription": "whisper.cpp ggml-medium.en; WER against the input text, lowercased, no punctuation",
+ "arms": {
+  "ref": "reference Kokoro (ONNX, CPU)",
+  "s017": "previous student (S017)",
+  "cand": "S018 student"
+ },
+ "interface_identical_to_previous_student": true,
+ "redacted_hypothesis_words": 1,
+ "redaction_note": "a heard-as word that matched the release word filter was replaced by [redacted] (a Whisper mis-hearing, not text from any input); error counts and WER are unchanged",
+ "sets": {
+  "heldout": {
+   "af_heart": {
+    "ref": {
+     "errs": 22,
+     "words": 751,
+     "wer": 2.93,
+     "bad": [
+      [
+       5,
+       "gotama",
+       "gautama"
+      ],
+      [
+       7,
+       "work'd",
+       "worked"
+      ],
+      [
+       8,
+       "samsa",
+       "samhsa"
+      ],
+      [
+       14,
+       "none",
+       ""
+      ],
+      [
+       14,
+       "the",
+       ""
+      ],
+      [
+       14,
+       "less",
+       "nonetheless"
+      ],
+      [
+       22,
+       "mrs",
+       "misses"
+      ],
+      [
+       30,
+       "ah",
+       ""
+      ],
+      [
+       30,
+       "ah",
+       "yes"
+      ],
+      [
+       30,
+       "ah",
+       "tonight"
+      ],
+      [
+       30,
+       "ow",
+       "i'll"
+      ],
+      [
+       30,
+       "ow",
+       "bow"
+      ],
+      [
+       30,
+       "ow",
+       "out"
+      ],
+      [
+       30,
+       "oo",
+       "you"
+      ],
+      [
+       31,
+       "higgins",
+       ""
+      ],
+      [
+       31,
+       "oh",
+       "hidgineso"
+      ],
+      [
+       32,
+       "ebrio",
+       "ebro"
+      ],
+      [
+       33,
+       "samsa",
+       "samson"
+      ],
+      [
+       45,
+       "drest",
+       "dressed"
+      ],
+      [
+       49,
+       "grete's",
+       "gret's"
+      ],
+      [
+       51,
+       "hoarse",
+       "horse"
+      ],
+      [
+       56,
+       "gentlemen",
+       "gentleman"
+      ]
+     ]
+    },
+    "s017": {
+     "errs": 147,
+     "words": 751,
+     "wer": 19.57,
+     "bad": [
+      [
+       1,
+       "ghost",
+       "gust"
+      ],
+      [
+       1,
+       "notion",
+       "nation"
+      ],
+      [
+       1,
+       "i've",
+       "have"
+      ],
+      [
+       1,
+       "voice",
+       "vous"
+      ],
+      [
+       2,
+       "boy",
+       "bay"
+      ],
+      [
+       2,
+       "nice",
+       "ness"
+      ],
+      [
+       3,
+       "no",
+       "an"
+      ],
+      [
+       3,
+       "place",
+       "a"
+      ],
+      [
+       3,
+       "save",
+       "sav"
+      ],
+      [
+       4,
+       "they",
+       ""
+      ],
+      [
+       4,
+       "had",
+       "the"
+      ],
+      [
+       4,
+       "no",
+       "hadnae"
+      ],
+      [
+       4,
+       "such",
+       ""
+      ],
+      [
+       4,
+       "a",
+       "salma"
+      ],
+      [
+       4,
+       "patience",
+       "passions"
+      ],
+      [
+       5,
+       "gotama",
+       "gautama"
+      ],
+      [
+       5,
+       "teachings",
+       "teenings"
+      ],
+      [
+       5,
+       "origin",
+       "oran"
+      ],
+      [
+       5,
+       "way",
+       "were"
+      ],
+      [
+       6,
+       "train",
+       "tran"
+      ],
+      [
+       6,
+       "late",
+       "led"
+      ],
+      [
+       6,
+       "home",
+       "him"
+      ],
+      [
+       7,
+       "my",
+       ""
+      ],
+      [
+       7,
+       "lodging",
+       "malaing"
+      ],
+      [
+       7,
+       "work'd",
+       "worked"
+      ],
+      [
+       8,
+       "samsa",
+       "samhsa"
+      ],
+      [
+       9,
+       "govinda",
+       "gavinda"
+      ],
+      [
+       11,
+       "uncoiled",
+       "uncalled"
+      ],
+      [
+       12,
+       "",
+       "a"
+      ],
+      [
+       12,
+       "avoid",
+       "good"
+      ],
+      [
+       12,
+       "trifling",
+       "truffling"
+      ],
+      [
+       13,
+       "going",
+       "gang"
+      ],
+      [
+       14,
+       "howled",
+       "held"
+      ],
+      [
+       14,
+       "rain",
+       "ran"
+      ],
+      [
+       14,
+       "blows",
+       "bleys"
+      ],
+      [
+       16,
+       "",
+       "though"
+      ],
+      [
+       16,
+       "they",
+       "some"
+      ],
+      [
+       16,
+       "somehow",
+       "had"
+      ],
+      [
+       18,
+       "jar",
+       "vadar"
+      ],
+      [
+       19,
+       "bridge",
+       "brib"
+      ],
+      [
+       19,
+       "",
+       "nantina"
+      ],
+      [
+       19,
+       "1902",
+       "ii"
+      ],
+      [
+       20,
+       "",
+       "upped"
+      ],
+      [
+       20,
+       "opened",
+       "in"
+      ],
+      [
+       20,
+       "",
+       "and"
+      ],
+      [
+       20,
+       "inside",
+       "said"
+      ],
+      [
+       21,
+       "ghost",
+       "gust"
+      ],
+      [
+       22,
+       "notice",
+       "novice"
+      ],
+      [
+       22,
+       "mrs",
+       "misses"
+      ],
+      [
+       23,
+       "age",
+       ""
+      ],
+      [
+       23,
+       "custom",
+       "customs"
+      ],
+      [
+       23,
+       "stale",
+       "stall"
+      ],
+      [
+       24,
+       "startlement",
+       "starglement"
+      ],
+      [
+       24,
+       "little",
+       "lickle"
+      ],
+      [
+       25,
+       "ablest",
+       "ublest"
+      ],
+      [
+       25,
+       "champion",
+       "campion"
+      ],
+      [
+       26,
+       "",
+       "at"
+      ],
+      [
+       26,
+       "outside",
+       "said"
+      ],
+      [
+       27,
+       "",
+       "up"
+      ],
+      [
+       27,
+       "open",
+       "in"
+      ],
+      [
+       27,
+       "night",
+       "net"
+      ],
+      [
+       29,
+       "they",
+       "[redacted]"
+      ],
+      [
+       29,
+       "richest",
+       "riddest"
+      ],
+      [
+       29,
+       "merchant",
+       "murgon"
+      ],
+      [
+       30,
+       "ah",
+       ""
+      ],
+      [
+       30,
+       "ah",
+       ""
+      ],
+      [
+       30,
+       "ah",
+       ""
+      ],
+      [
+       30,
+       "ow",
+       ""
+      ],
+      [
+       30,
+       "ow",
+       "aloha"
+      ],
+      [
+       30,
+       "ow",
+       "to"
+      ],
+      [
+       30,
+       "oo",
+       "you"
+      ],
+      [
+       31,
+       "",
+       "auf"
+      ],
+      [
+       31,
+       "higgins",
+       "wiederien"
+      ],
+      [
+       31,
+       "oh",
+       "esau"
+      ],
+      [
+       32,
+       "charge",
+       "bar"
+      ],
+      [
+       32,
+       "ebrio",
+       "ebria"
+      ],
+      [
+       33,
+       "opened",
+       "upped"
+      ],
+      [
+       33,
+       "eyes",
+       "uz"
+      ],
+      [
+       33,
+       "wide",
+       "wud"
+      ],
+      [
+       34,
+       "little",
+       "ligual"
+      ],
+      [
+       35,
+       "",
+       "a"
+      ],
+      [
+       35,
+       "about",
+       "bet"
+      ],
+      [
+       35,
+       "great",
+       "gret"
+      ],
+      [
+       36,
+       "pain",
+       "pan"
+      ],
+      [
+       37,
+       "lay",
+       "left"
+      ],
+      [
+       39,
+       "my",
+       "ma"
+      ],
+      [
+       39,
+       "my",
+       ""
+      ],
+      [
+       39,
+       "reasons",
+       "mereasons"
+      ],
+      [
+       39,
+       "found",
+       "fanned"
+      ],
+      [
+       39,
+       "my",
+       "ma"
+      ],
+      [
+       39,
+       "papers",
+       "peppers"
+      ],
+      [
+       40,
+       "fetching",
+       "fanning"
+      ],
+      [
+       40,
+       "sight",
+       "set"
+      ],
+      [
+       40,
+       "i",
+       "it"
+      ],
+      [
+       40,
+       "fetch",
+       "fan"
+      ],
+      [
+       41,
+       "eliza",
+       "alexa"
+      ],
+      [
+       41,
+       "buying",
+       "baying"
+      ],
+      [
+       44,
+       "nights",
+       "nets"
+      ],
+      [
+       44,
+       "road",
+       "ride"
+      ],
+      [
+       45,
+       "i",
+       ""
+      ],
+      [
+       45,
+       "drest",
+       "addressed"
+      ],
+      [
+       45,
+       "no",
+       "nay"
+      ],
+      [
+       45,
+       "places",
+       "pluses"
+      ],
+      [
+       45,
+       "idle",
+       "eddle"
+      ],
+      [
+       46,
+       "i",
+       "i'll"
+      ],
+      [
+       46,
+       "i",
+       "i'll"
+      ],
+      [
+       48,
+       "i'm",
+       "am"
+      ],
+      [
+       48,
+       "going",
+       "gang"
+      ],
+      [
+       48,
+       "i'm",
+       "am"
+      ],
+      [
+       48,
+       "going",
+       "gang"
+      ],
+      [
+       48,
+       "spoke",
+       "spec"
+      ],
+      [
+       48,
+       "bright",
+       "brit"
+      ],
+      [
+       48,
+       "smile",
+       "smell"
+      ],
+      [
+       49,
+       "jump",
+       "bump"
+      ],
+      [
+       49,
+       "grete's",
+       "gretz"
+      ],
+      [
+       49,
+       "face",
+       "fuss"
+      ],
+      [
+       50,
+       "they",
+       "that"
+      ],
+      [
+       50,
+       "main",
+       "men's"
+      ],
+      [
+       52,
+       "wait",
+       "what"
+      ],
+      [
+       55,
+       "",
+       "at"
+      ],
+      [
+       56,
+       "gentlemen",
+       "gentleman"
+      ],
+      [
+       56,
+       "waited",
+       "wadded"
+      ],
+      [
+       57,
+       "i",
+       ""
+      ],
+      [
+       57,
+       "brought",
+       "abroad"
+      ],
+      [
+       57,
+       "just",
+       "bus"
+      ],
+      [
+       57,
+       "oblige",
+       ""
+      ],
+      [
+       57,
+       "you",
+       "ablai"
+      ],
+      [
+       57,
+       "like",
+       "yulek"
+      ],
+      [
+       57,
+       "make",
+       "muck"
+      ],
+      [
+       58,
+       "my",
+       ""
+      ],
+      [
+       58,
+       "contention",
+       "contentment"
+      ],
+      [
+       59,
+       "i",
+       "a"
+      ],
+      [
+       59,
+       "while",
+       "will"
+      ],
+      [
+       59,
+       "maybe",
+       "mebbe"
+      ],
+      [
+       59,
+       "tomorrow",
+       "tamar"
+      ],
+      [
+       61,
+       "which",
+       "when"
+      ],
+      [
+       62,
+       "waited",
+       "wadded"
+      ],
+      [
+       62,
+       "waited",
+       "wadded"
+      ],
+      [
+       62,
+       "phone",
+       "fan"
+      ],
+      [
+       65,
+       "",
+       "kud"
+      ],
+      [
+       65,
+       "goodbye",
+       "ba"
+      ],
+      [
+       66,
+       "is",
+       "as"
+      ],
+      [
+       66,
+       "too",
+       "two"
+      ],
+      [
+       66,
+       "much",
+       "mon"
+      ],
+      [
+       68,
+       "quiet",
+       "quite"
+      ],
+      [
+       70,
+       "higgins's",
+       "higgins'"
+      ],
+      [
+       70,
+       "drawing",
+       "drum"
+      ]
+     ]
+    },
+    "cand": {
+     "errs": 29,
+     "words": 751,
+     "wer": 3.86,
+     "bad": [
+      [
+       5,
+       "gotama",
+       "gautama"
+      ],
+      [
+       7,
+       "work'd",
+       "worked"
+      ],
+      [
+       8,
+       "samsa",
+       "samhsa"
+      ],
+      [
+       14,
+       "none",
+       ""
+      ],
+      [
+       14,
+       "the",
+       ""
+      ],
+      [
+       14,
+       "less",
+       "nonetheless"
+      ],
+      [
+       22,
+       "mrs",
+       "misses"
+      ],
+      [
+       30,
+       "",
+       "a"
+      ],
+      [
+       30,
+       "ah",
+       "a"
+      ],
+      [
+       30,
+       "ah",
+       "a"
+      ],
+      [
+       30,
+       "ah",
+       "a"
+      ],
+      [
+       30,
+       "ow",
+       "a"
+      ],
+      [
+       30,
+       "ow",
+       "a"
+      ],
+      [
+       30,
+       "ow",
+       "out"
+      ],
+      [
+       30,
+       "oo",
+       "to"
+      ],
+      [
+       31,
+       "",
+       "h"
+      ],
+      [
+       31,
+       "",
+       "i"
+      ],
+      [
+       31,
+       "",
+       "g"
+      ],
+      [
+       31,
+       "",
+       "g"
+      ],
+      [
+       31,
+       "",
+       "i"
+      ],
+      [
+       31,
+       "",
+       "n"
+      ],
+      [
+       31,
+       "higgins",
+       "s"
+      ],
+      [
+       31,
+       "oh",
+       "o"
+      ],
+      [
+       32,
+       "ebrio",
+       "ebro"
+      ],
+      [
+       45,
+       "drest",
+       "dressed"
+      ],
+      [
+       49,
+       "grete's",
+       "gret's"
+      ],
+      [
+       51,
+       "hoarse",
+       "horse"
+      ],
+      [
+       56,
+       "gentlemen",
+       "gentleman"
+      ],
+      [
+       66,
+       "is",
+       "as"
+      ]
+     ]
+    },
+    "fixed": [
+     "#1 ghost",
+     "#1 i've",
+     "#1 notion",
+     "#1 voice",
+     "#11 uncoiled",
+     "#12 avoid",
+     "#12 trifling",
+     "#13 going",
+     "#14 blows",
+     "#14 howled",
+     "#14 rain",
+     "#16 somehow",
+     "#16 they",
+     "#18 jar",
+     "#19 1902",
+     "#19 bridge",
+     "#2 boy",
+     "#2 nice",
+     "#20 inside",
+     "#20 opened",
+     "#21 ghost",
+     "#22 notice",
+     "#23 age",
+     "#23 custom",
+     "#23 stale",
+     "#24 little",
+     "#24 startlement",
+     "#25 ablest",
+     "#25 champion",
+     "#26 outside",
+     "#27 night",
+     "#27 open",
+     "#29 merchant",
+     "#29 richest",
+     "#29 they",
+     "#3 no",
+     "#3 place",
+     "#3 save",
+     "#32 charge",
+     "#33 eyes",
+     "#33 opened",
+     "#33 wide",
+     "#34 little",
+     "#35 about",
+     "#35 great",
+     "#36 pain",
+     "#37 lay",
+     "#39 found",
+     "#39 my",
+     "#39 papers",
+     "#39 reasons",
+     "#4 a",
+     "#4 had",
+     "#4 no",
+     "#4 patience",
+     "#4 such",
+     "#4 they",
+     "#40 fetch",
+     "#40 fetching",
+     "#40 i",
+     "#40 sight",
+     "#41 buying",
+     "#41 eliza",
+     "#44 nights",
+     "#44 road",
+     "#45 i",
+     "#45 idle",
+     "#45 no",
+     "#45 places",
+     "#46 i",
+     "#48 bright",
+     "#48 going",
+     "#48 i'm",
+     "#48 smile",
+     "#48 spoke",
+     "#49 face",
+     "#49 jump",
+     "#5 origin",
+     "#5 teachings",
+     "#5 way",
+     "#50 main",
+     "#50 they",
+     "#52 wait",
+     "#56 waited",
+     "#57 brought",
+     "#57 i",
+     "#57 just",
+     "#57 like",
+     "#57 make",
+     "#57 oblige",
+     "#57 you",
+     "#58 contention",
+     "#58 my",
+     "#59 i",
+     "#59 maybe",
+     "#59 tomorrow",
+     "#59 while",
+     "#6 home",
+     "#6 late",
+     "#6 train",
+     "#61 which",
+     "#62 phone",
+     "#62 waited",
+     "#65 goodbye",
+     "#66 much",
+     "#66 too",
+     "#68 quiet",
+     "#7 lodging",
+     "#7 my",
+     "#70 drawing",
+     "#70 higgins's",
+     "#9 govinda"
+    ],
+    "newly_broken": [],
+    "ref_ok_cand_wrong": [
+     "#66 is"
+    ],
+    "repeat_word_violations": {}
+   }
+  }
+ }
+}

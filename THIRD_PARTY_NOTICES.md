@@ -7,7 +7,7 @@ Original work in this repository: Copyright 2026 The kokoro-82m-coreml-size-lab 
 - Source: https://huggingface.co/hexgrad/Kokoro-82M, version 1.0, revision `f3ff3571791e39611d31c381e3a41a3af07b4987`.
 - `kokoro-v1_0.pth` SHA-256 `496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4`; `voices/af_heart.pt` SHA-256 `0ab5709b8ffab19bfd849cd11d98f75b60af7733253ad0d67b12382a102cb4ff`.
 - The upstream model card declares `license: apache-2.0` ("Apache-licensed weights"); the upstream repository has no separate LICENSE file. Voices live in the same repository and fall under that declaration.
-- Upstream states Kokoro was trained on permissive or non-copyrighted audio and, for v1.0, on CC BY audio: Koniwa `tnc` (CC BY 3.0) and SIWIS (CC BY 4.0). Upstream credits StyleTTS 2 (Li et al., MIT licence) for the architecture. Credit for those sources is carried here by reference.
+- Upstream states Kokoro was trained on permissive or non-copyrighted audio and, for v1.0, on CC BY audio: Koniwa `tnc` (CC BY 3.0) and SIWIS (CC BY 4.0). Upstream credits StyleTTS 2 (Li et al., MIT license) for the architecture. Credit for those sources is carried here by reference.
 - Kokoro Python package (`kokoro` 0.9.4, `misaki` 0.9.4): Apache-2.0, used for conversion, evaluation, and phonemization in scripts. Not redistributed.
 
 ## Model provenance
@@ -17,10 +17,10 @@ Original work in this repository: Copyright 2026 The kokoro-82m-coreml-size-lab 
 | `500mb/` fp32 packages (text, prosody, pitch, decoder, generator) | Kokoro-82M v1.0 checkpoint split into five stages and converted with the conversion scripts below (`convert_*.py`, `share_fixed_shapes.py`), fp32, five fixed shapes sharing weights. |
 | `200mb/` decoder and generator int8 | The same decoder and generator with weight-only int8 compression (`compress_shared_weights.py`); text, prosody and pitch are the 500mb fp32 packages. |
 | `100mb/` int8/int4 packages | The same stages compressed by `compress_sweep_variant.py` / `compress_selective.py` (int8 text embeddings and pitch, int4 prosody text, decoder and generator). |
-| `50mb/` `kokoro_student_w256`, `kokoro_pitch_int8_flex`, `kokoro_decoder_int4_flex`, `kokoro_generator_mixed8_flex` | The S014 student (below) plus Kokoro's pitch, decoder and generator converted with flexible lengths (`s014_convert_downstream.py`) and quantized (int8; int4; int4 with int8 output and res5 weights). |
+| `50mb/` `kokoro_student_w256`, `kokoro_pitch_int8_flex`, `kokoro_decoder_int4_flex`, `kokoro_generator_mixed8_flex` | The S018 student (below) plus Kokoro's pitch, decoder and generator converted with flexible lengths (`s014_convert_downstream.py`) and quantized (int8; int4; int4 with int8 output and res5 weights). |
 | `25mb/` `kokoro_pitch_int8_flex.mlpackage` (same package as in 50mb) | Kokoro-82M v1.0 pitch/energy predictor weights, converted and int8-quantized (`s014_convert_downstream.py`). |
-| `25mb/` `kokoro_student_w256.mlpackage` (same package as in 50mb) | Student (S014, width 256, 3,002,162 parameters) trained by distillation with fp32 Kokoro-82M as teacher (`s014_train.py`), converted by `s014_convert_student.py`. The trained checkpoint is published as `checkpoints/student-w256-b-step10000.pt`. |
-| `25mb/` `kokoro_s015_vocoder_int8.mlpackage` | Student vocoder (S015 v4-prune): initialised by structured pruning of Kokoro-82M's decoder and generator (`s015_prune.py`), trained by distillation (`s015_train.py`, `s015_train_gan.py`), converted by `s015_convert.py`. The trained checkpoint is published as `checkpoints/vocoder-v4-prune-step10000.pt` (it also carries the unused S015 pitch student; the shipped pitch model is the Kokoro int8 package). |
+| `25mb/` `kokoro_student_w256.mlpackage` (same package as in 50mb) | The S018 student (width 256, 3,002,162 parameters): the S014 student (trained by distillation with fp32 Kokoro-82M as teacher, `s014_train.py`) fine-tuned with Kokoro-82M as teacher on general text plus targeted sentences (`s018_train.py`, recipe in `docs/README_RETRAIN.md`), converted by `s018_convert.py`. The S014 starting checkpoint is published as `checkpoints/student-w256-b-step10000.pt`. |
+| `25mb/` `kokoro_s015_vocoder_int8.mlpackage` | Student vocoder (S015, training run `v4-prune`): initialized by structured pruning of Kokoro-82M's decoder and generator (`s015_prune.py`), trained by distillation (`s015_train.py`, `s015_train_gan.py`), converted by `s015_convert.py`. The trained checkpoint is published as `checkpoints/vocoder-v4-prune-step10000.pt` (it also carries the unused S015 pitch student; the shipped pitch model is the Kokoro int8 package). |
 | `25mb/af_heart_f32.bin` | Upstream `voices/af_heart.pt`, squeezed to 510 x 256 float32 (`s017_export_voice.py`). |
 
 These models are derivative works of Kokoro-82M and are distributed under Apache-2.0 with the attribution above.
@@ -31,7 +31,8 @@ Several scripts (`convert_text_frontend.py`, `convert_prosody_text.py`, `convert
 
 ## Training text
 
-- S014 distillation text: 44 training books and 5 held-out books from Project Gutenberg (ids listed in `scripts/s014_corpus.py`), downloaded at build time and not redistributed. Public domain in the United States; Project Gutenberg licence terms apply to the trademarked boilerplate, which the script strips. Held-out books are by different authors than the training books.
+- S014 distillation text: 44 training books and 5 held-out books from Project Gutenberg (ids listed in `scripts/s014_corpus.py`), downloaded at build time and not redistributed. Public domain in the United States; Project Gutenberg license terms apply to the trademarked boilerplate, which the script strips. Held-out books are by different authors than the training books.
+- S018 fine-tuning text: general text plus targeted sentences (generated by `scripts/s018_corpus.py` from the recipe's templates and word lists).
 - Templated sentences generated by `scripts/s014_templates.py` (numbers, dates, prices, names and places from short lists in the script); original to this project, no third-party text.
 - The 15-item gate set is 5 frozen benchmark passages plus 10 held-out utterances drawn from the held-out books.
 - Benchmark passages in `benchmark/inputs/` were written for this project and dedicated to the public domain (CC0). Reference audio is original Kokoro `af_heart` output (kokoro-onnx 0.6.1).

@@ -1,0 +1,236 @@
+{
+ "voice": "af_heart",
+ "set": "abn",
+ "chain": "50mb chain: student + Kokoro int8 pitch + int4 decoder + mixed8 generator, Mac Core ML CPU_ONLY, speed 1.0",
+ "transcription": "whisper.cpp ggml-medium.en; WER against the input text, lowercased, no punctuation",
+ "arms": {
+  "ref": "reference Kokoro (ONNX, CPU)",
+  "s017": "previous student (S017)",
+  "cand": "S018 student"
+ },
+ "interface_identical_to_previous_student": true,
+ "redacted_hypothesis_words": 0,
+ "redaction_note": "a heard-as word that matched the release word filter was replaced by [redacted] (a Whisper mis-hearing, not text from any input); error counts and WER are unchanged",
+ "sets": {
+  "abn": {
+   "af_heart": {
+    "ref": {
+     "errs": 2,
+     "words": 135,
+     "wer": 1.48,
+     "bad": [
+      [
+       12,
+       "watched",
+       "watch"
+      ],
+      [
+       14,
+       "joy",
+       "joyce"
+      ]
+     ]
+    },
+    "s017": {
+     "errs": 30,
+     "words": 135,
+     "wer": 22.22,
+     "bad": [
+      [
+       1,
+       "chapter",
+       "adapter"
+      ],
+      [
+       3,
+       "catch",
+       "care"
+      ],
+      [
+       3,
+       "say",
+       "sew"
+      ],
+      [
+       5,
+       "nice",
+       "ness"
+      ],
+      [
+       8,
+       "wait",
+       "what"
+      ],
+      [
+       10,
+       "boy",
+       "bay"
+      ],
+      [
+       10,
+       "rode",
+       "read"
+      ],
+      [
+       10,
+       "bridge",
+       "grid"
+      ],
+      [
+       11,
+       "change",
+       "van"
+      ],
+      [
+       11,
+       "life",
+       "love"
+      ],
+      [
+       12,
+       "jim",
+       "yim"
+      ],
+      [
+       12,
+       "judy",
+       "udi"
+      ],
+      [
+       12,
+       "watched",
+       "want"
+      ],
+      [
+       12,
+       "children",
+       ""
+      ],
+      [
+       12,
+       "choose",
+       "gilderun"
+      ],
+      [
+       12,
+       "a",
+       "music"
+      ],
+      [
+       12,
+       "cheap",
+       "steep"
+      ],
+      [
+       12,
+       "toy",
+       "too"
+      ],
+      [
+       13,
+       "",
+       "hey"
+      ],
+      [
+       13,
+       "how",
+       "i"
+      ],
+      [
+       13,
+       "about",
+       "bet"
+      ],
+      [
+       13,
+       "go",
+       "gay"
+      ],
+      [
+       13,
+       "out",
+       "at"
+      ],
+      [
+       13,
+       "",
+       "or"
+      ],
+      [
+       13,
+       "around",
+       "ran"
+      ],
+      [
+       13,
+       "",
+       "tent"
+      ],
+      [
+       13,
+       "town",
+       "in"
+      ],
+      [
+       13,
+       "tonight",
+       "it"
+      ],
+      [
+       14,
+       "",
+       "and"
+      ],
+      [
+       14,
+       "joy",
+       "i"
+      ]
+     ]
+    },
+    "cand": {
+     "errs": 1,
+     "words": 135,
+     "wer": 0.74,
+     "bad": [
+      [
+       12,
+       "watched",
+       "watch"
+      ]
+     ]
+    },
+    "fixed": [
+     "#1 chapter",
+     "#10 boy",
+     "#10 bridge",
+     "#10 rode",
+     "#11 change",
+     "#11 life",
+     "#12 a",
+     "#12 cheap",
+     "#12 children",
+     "#12 choose",
+     "#12 jim",
+     "#12 judy",
+     "#12 toy",
+     "#13 about",
+     "#13 around",
+     "#13 go",
+     "#13 how",
+     "#13 out",
+     "#13 tonight",
+     "#13 town",
+     "#14 joy",
+     "#3 catch",
+     "#3 say",
+     "#5 nice",
+     "#8 wait"
+    ],
+    "newly_broken": [],
+    "ref_ok_cand_wrong": [],
+    "repeat_word_violations": {}
+   }
+  }
+ }
+}

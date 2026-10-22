@@ -1,6 +1,6 @@
 # Experiment log
 
-> **Release note.** This log is the working record of the project, scrubbed of personal names, accounts, hosts, and local paths for publication ("the owner" is the project owner; listeners appear as `listener-N`; GPU hosts as `<gpu-vm>`). Entries are historical and keep the wording used when they were written, including the word "accepted" for S017. The current status, with the sizes kept separate, is in `README.md`: compiled models 24,267,607 bytes; `af_heart` table 522,240 bytes; harness `.app` 24,976,568 bytes (unsigned Release). Listener-1 ran the counted short hidden-sentence session (8 ties, 0 reference wins; the earlier session 1 without the play-to-end gate is not counted) and the four-length blind test (3 ties, 1 S017 win, 0 reference wins), so the complete documented sound gate passes for that listener. A second listener (listener-2) ran the four-length test only: 3 S017 preferences and 1 reference preference (15 s). Under the strict written rule that is one reference preference; the owner judges it acceptable because the smaller model was preferred in 3 of 4 pairs. listener-1 is the project author; the test was blind but not independent, and the author judged listener-2's single reference preference acceptable. Where an older entry says the four-length test was "prepared, not run", the later "S017 four-length blind test" entry supersedes it. The full-chain objective result is in `benchmark/results/size-s017-eval.json`: 1.787 dB (PASS) and supersedes the earlier 1.747 dB figure, which came from an arm that ran the student in PyTorch.
+> **Release note.** This log is the working record of the project, scrubbed of personal names, accounts, hosts, and local paths for publication ("the owner" is the project owner; listeners appear as `listener-N`; GPU hosts as `<gpu-vm>`). Entries are historical and keep the wording used when they were written, including the word "accepted" for S017. The current status, with the sizes kept separate, is in `README.md`: compiled models 24,267,610 bytes; `af_heart` table 522,240 bytes; harness `.app` 24,976,571 bytes (unsigned Release). Listener-1 ran the counted short hidden-sentence session (8 ties, 0 reference wins; the earlier session 1 without the play-to-end gate is not counted) and the four-length blind test (3 ties, 1 S017 win, 0 reference wins), so the complete documented sound gate passes for that listener. A second listener (listener-2) ran the four-length test only: 3 S017 preferences and 1 reference preference (15 s). Under the strict written rule that is one reference preference; the author judges it acceptable because the smaller model was preferred in 3 of 4 pairs. Listener-1 is the project author; the test was blind but not independent, and the author judged listener-2's single reference preference acceptable. Where an older entry says the four-length test was "prepared, not run", the later "S017 four-length blind test" entry supersedes it. The full-chain objective result is in `benchmark/results/size-s017-eval.json`: 1.787 dB (PASS) and supersedes the earlier 1.747 dB figure, which came from a run that used the PyTorch student. The last entry, S018, is a summary written for publication; the S017 entries above are unchanged. The 25mb and 50mb tiers now carry the S018 student (compiled models 24,267,610 bytes for 25mb).
 
 
 Sizes are logical file bytes (`os.stat`), not APFS allocated blocks. The Release `.app` is an unsigned arm64 iOS build (`generic/platform=iOS`, `CODE_SIGNING_ALLOWED=NO`). Early sections were measured before the iPhone was available. From S003 on, speed, listening, and stability were run on the iPhone 12.
@@ -2030,3 +2030,38 @@ A second person (listener-2) ran the Listen build's "Four lengths" set on the iP
 | 30s | S017 | 5 / 4 |
 
 Result: 3 S017 preferences, 1 reference preference. Under the written GOAL rule ("passes unless the listener prefers the reference"), this session has one reference preference. The owner judges it acceptable, since the smaller model was preferred in 3 of 4 pairs, and S017 stays the accepted result. Listener-1's counted results are unchanged: hidden session 2 (8 ties) plus four lengths (3 ties, 1 S017 win), 12 pairs, 0 reference wins; hidden session 1 (no play-to-end gate) stays not counted. Across both listeners: 16 pairs, 11 ties, 4 S017, 1 reference. Listener-1 is the project author; the test was blind but not independent, and the author judged listener-2's single reference preference acceptable.
+
+
+## S018: retrained student (2026-10-21)
+
+This entry is a summary written for publication. S018 replaced the student in the `25mb/` and `50mb/` tiers.
+
+The `25mb/` and `50mb/` tiers now ship a retrained `kokoro_student_w256.mlpackage` (the S018 student), published as trained. It replaces the S017 student in both tiers; nothing else in those tiers changed. The previous version stays available: Hugging Face commit [`e7ed75f144376a2d11377cb8af706c3c54b0b0f6`](https://huggingface.co/<handle>/kokoro-82m-coreml-size-tiers/tree/e7ed75f144376a2d11377cb8af706c3c54b0b0f6) and the GitHub history.
+
+**The problem.** The S017 student mispronounced common words when the output was transcribed by speech recognition: for example chapter, catch, nice, okay, gave, life and courage came out as other words ("chapter" as "adapter", "catch" as "count", "nice" as "ness"). Blind listening and the log-mel distance had not caught it.
+
+**The cause.** The sounds involved (the "ch" and "j" sounds, long vowels such as the "ay" in "gave" and the "i" in "nice", the "w" sound) are rare in running text, and the student's training averaged its loss over frames, so a sound that lasts a few frames could fail at almost no cost.
+
+**The fix.** The student was fine-tuned from the previous student's checkpoint on general text plus targeted sentences, with a higher weight on those sounds in per-token losses and an added log-mel term. The package has the same interface and the same compiled size (6,076,256 bytes for the student; the 25mb tier totals 24,267,610 bytes). The recipe is generic and is published: `docs/README_RETRAIN.md` with the scripts `scripts/s018_*.py`.
+
+**Results** (`af_heart`; whisper.cpp `ggml-medium.en` transcribes each render and the word error rate is computed against the input text, lowercased and without punctuation; same token ids and style rows for every column; Mac Core ML, CPU only; 25mb chain):
+
+| Check | Reference Kokoro | S017 student | S018 student | Source |
+| --- | ---: | ---: | ---: | --- |
+| Held-out WER (751 words, public-domain book text not used in training) | 2.93% | 19.57% | **3.86%** | `benchmark/results/size-s018-score-heldout-25mb.json` |
+| Neutral A/B WER (135 words, everyday sentences) | 1.48% | 20.00% | **0.74%** | `benchmark/results/size-s018-score-abn-25mb.json` |
+| DTW log-mel against fp32 Kokoro, 15 items (dB, lower is better) | n/a | 1.787 | 2.576 (worse) | `benchmark/results/size-s018-dtw-25mb.json` |
+
+- The WER gate (within 1 percentage point of the reference on the same set and voice, and no word the reference says correctly failing in more than one sentence) is met on both sets: held-out +0.93 points, neutral A/B -0.74 points, no repeated-word failures.
+- **The DTW log-mel distance is worse than S017's** (2.576 dB against 1.787 dB, +0.789 dB; the bar S015 to S017 used was 1.86 dB). It is recorded, not a gate. The audio differs more from the reference's log-mel while the words are right.
+- 50mb chain (same student with the S014 int4 decoder and mixed8 generator): held-out 2.93% / 19.57% / **3.86%** (reference / S017 / S018; `benchmark/results/size-s018-score-heldout-50mb.json`), neutral A/B 1.48% / 22.22% / **0.74%** (`benchmark/results/size-s018-score-abn-50mb.json`), DTW 1.901 dB (S017) against 2.754 dB (S018, worse; `benchmark/results/size-s018-dtw-50mb.json`).
+- The 100, 200 and 500 MB tiers do not use the student and are unchanged.
+
+**Speed and listening for the S018 student:**
+
+- 25mb: Median RTF (iPhone 12): 3s 0.062, 7s 0.073, 15s 0.092, 30s 0.103 (gate 0.30; source `benchmark/results/size-s018-speed-25mb.json`). Sound: 12 ties of 12 blind pairs, 0 reference preferred (`benchmark/results/size-s018-25mb-listen-s018.json`, `benchmark/results/size-s018-25mb-listen-s018-four.json`).
+- 50mb: Median RTF (iPhone 12): 3s 0.184, 7s 0.193, 15s 0.195, 30s 0.210 (gate 0.30; source `benchmark/results/size-s018-speed-50mb.json`). Sound: 12 ties of 12 blind pairs, 0 reference preferred (`benchmark/results/size-s018-50mb-listen-s018-50mb.json`, `benchmark/results/size-s018-50mb-listen-s018-50mb-four.json`).
+
+Figures in this document that are labeled S017 (or "previous student") belong to the previous student, not to the S018 student.
+
+Files: held-out set `benchmark/inputs/s018-heldout/`, neutral A/B set `benchmark/inputs/s018-ab-neutral/`, results `benchmark/results/size-s018-*.json`, recipe `docs/README_RETRAIN.md` and `scripts/s018_*.py`.

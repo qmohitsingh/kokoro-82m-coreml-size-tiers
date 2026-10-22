@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "description": "Index of the Kokoro size-lab Core ML tiers. Each folder is self-contained and has its own manifest.json (packages, compiled sizes, interfaces, compute units, metrics, hashes). Only tiers that passed speed and sound are included.",
+  "description": "Index of the Kokoro-82M Core ML size tiers. Each folder is self-contained and has its own manifest.json (packages, compiled sizes, interfaces, compute units, metrics, hashes). Only tiers that passed speed and sound are included; the S018 student in 25mb and 50mb replaced the S017 student, and its speed and listening results are marked pending in the tier manifests until the phone result files are staged.",
   "upstream": {
     "repo": "hexgrad/Kokoro-82M",
     "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
@@ -62,10 +62,10 @@
     },
     "50mb": {
       "folder": "50mb/",
-      "experiment": "S014 mixed8",
+      "experiment": "S018",
       "label": "Research (at most 50 MB)",
       "status": "passed",
-      "compiled_models_total_bytes": 42582199,
+      "compiled_models_total_bytes": 42582202,
       "shapes": "flexible",
       "packages": [
         "kokoro_student_w256.mlpackage",
@@ -78,10 +78,10 @@
     },
     "25mb": {
       "folder": "25mb/",
-      "experiment": "S017",
+      "experiment": "S018",
       "label": "Ultra (at most 25 MB)",
       "status": "passed",
-      "compiled_models_total_bytes": 24267607,
+      "compiled_models_total_bytes": 24267610,
       "shapes": "flexible",
       "packages": [
         "kokoro_student_w256.mlpackage",
@@ -99,13 +99,13 @@
         "file": "checkpoints/student-w256-b-step10000.pt",
         "bytes": 12039760,
         "sha256": "191eba7351f6d694a5e3f63c222a706a1efa7dbecfe92e0ab790b8e95f797d47",
-        "role": "S014 width-256 student, the source of kokoro_student_w256: model weights, config, step, eval. No optimizer state."
+        "role": "S014 width-256 student: model weights, config, step, eval. No optimizer state. The starting point of the S018 student (kokoro_student_w256 in 25mb/ and 50mb/); see docs/README_RETRAIN.md in the GitHub repository."
       },
       {
         "file": "checkpoints/vocoder-v4-prune-step10000.pt",
         "bytes": 46058379,
         "sha256": "32b0318618362ddcf63ca98b2581f1d656f997ecc07537fa7ccd15b4c8109745",
-        "role": "S015 v4-prune step 10000, the source of kokoro_s015_vocoder_int8: vocoder weights and config, plus the unused S015 pitch student (the shipped pitch model is the Kokoro int8 package). No optimizer or discriminator state."
+        "role": "S015 pruned student vocoder (training run v4-prune) at step 10000, the source of kokoro_s015_vocoder_int8: vocoder weights and config, plus the unused S015 pitch student (the shipped pitch model is the Kokoro int8 package). No optimizer or discriminator state."
       }
     ]
   },
@@ -4137,21 +4137,21 @@
     "50mb": {
       "tier": "50mb",
       "label": "Research (at most 50 MB)",
-      "experiment": "S014 mixed8",
+      "experiment": "S018",
       "status": "passed",
       "shapes": "flexible",
       "shape_note": "Flexible token length (1 to 512 tokens) and frame length: the packages accept any length in range, so arbitrary sentences work once phoneme ids are supplied.",
       "recommended": false,
-      "recipe": "S014 width-256 student frontend, Kokoro int8 pitch, int4 decoder, mixed int4/int8 generator, all flexible length.",
+      "recipe": "S018 width-256 student frontend (fine-tuned from the S014 student), Kokoro int8 pitch, int4 decoder, mixed int4/int8 generator (S014 mixed8), all flexible length.",
       "size_measurement": "compiled_logical_bytes = sum of file sizes (os.stat st_size) of the .mlmodelc that `xcrun coremlcompiler compile` produces from the package, the same bytes Xcode puts in the app. package_sha256 = sha256 over every file sorted by relative path: relative path bytes then file bytes. coremldata.bin inside a compile can differ by a few bytes between runs.",
       "packages": [
         {
           "name": "kokoro_student_w256",
           "path": "kokoro_student_w256.mlpackage",
-          "role": "width-256 student replacing text body and duration path",
-          "compiled_logical_bytes": 6076253,
-          "package_logical_bytes": 6068613,
-          "package_sha256": "e9bd7b645cdd3511552e7c0a1d4ff4b79234ef586b69c93db6f25e596775b758",
+          "role": "width-256 student (S018) replacing text body and duration path",
+          "compiled_logical_bytes": 6076256,
+          "package_logical_bytes": 6068615,
+          "package_sha256": "fce37c3e7be06355c4d657703994652ee49dc5f2db18d4970a01c90f78d7f73a",
           "compute_units": "all",
           "inputs": [
             {
@@ -4201,18 +4201,18 @@
           "files": [
             {
               "path": "Data/com.apple.CoreML/model.mlmodel",
-              "bytes": 57500,
-              "sha256": "78b79c3eaa859838d1772f064b609b8e575bb0d68584304607e3162f96b9b158"
+              "bytes": 57502,
+              "sha256": "832953707e9d316874f8bffd7b63992a96013c5d8d26b6060804d73cd92d43de"
             },
             {
               "path": "Data/com.apple.CoreML/weights/weight.bin",
               "bytes": 6010496,
-              "sha256": "f6c199cb979d9d34300ae6a388e3eae81d78f84865d92e4c07b27329eb61ddf2"
+              "sha256": "1148be2a67e6c1ef41c8d35e3ee5530cc46a82d0ca2a021e93def29c7846cf16"
             },
             {
               "path": "Manifest.json",
               "bytes": 617,
-              "sha256": "9804d852f1992a27ce004a5ef199d43012ff4d1e4f5dfc4ff2ae1d54c48b3482"
+              "sha256": "5f5da66a768b24787f30a6775e70e49d86f7c11973173a48390fc6fab5066bd7"
             }
           ]
         },
@@ -4484,7 +4484,7 @@
           ]
         }
       ],
-      "compiled_models_total_bytes": 42582199,
+      "compiled_models_total_bytes": 42582202,
       "voice": null,
       "style_rows": {
         "source": "benchmark/inputs/bench.json (GitHub repository)",
@@ -4492,48 +4492,139 @@
         "note": "This tier's harness takes the af_heart style row for each frozen benchmark case from bench.json; it does not load a voice table, so no voice file is shipped in this folder. The stored rows equal the af_heart voice-table rows for every frozen benchmark case (asserted by scripts/s017_bench_inputs.py)."
       },
       "metrics": {
+        "intelligibility_wer_af_heart": {
+          "voice": "af_heart",
+          "tool": "whisper.cpp ggml-medium.en; WER against the input text, lowercased, no punctuation",
+          "chain": "50mb chain, Mac Core ML CPU_ONLY, speed 1.0, same token ids and style rows for every arm",
+          "heldout": {
+            "source": "benchmark/results/size-s018-score-heldout-50mb.json",
+            "words": 751,
+            "reference_wer_pct": 2.93,
+            "s017_student_wer_pct": 19.57,
+            "s018_student_wer_pct": 3.86,
+            "s018_minus_reference_points": 0.93,
+            "repeat_word_violations": 0
+          },
+          "neutral_ab": {
+            "source": "benchmark/results/size-s018-score-abn-50mb.json",
+            "words": 135,
+            "reference_wer_pct": 1.48,
+            "s017_student_wer_pct": 22.22,
+            "s018_student_wer_pct": 0.74,
+            "s018_minus_reference_points": -0.74,
+            "repeat_word_violations": 0
+          },
+          "result": "passed (gate: within 1 percentage point of the reference on the same set and voice, and no word the reference says correctly fails in more than one sentence)"
+        },
+        "objective_dtw_log_mel_db": {
+          "source": "benchmark/results/size-s018-dtw-50mb.json",
+          "s018_mean_db": 2.754,
+          "s017_mean_db": 1.901,
+          "difference_db": 0.853,
+          "result": "worse than S017 by 0.853 dB; recorded, not a gate",
+          "scope": "15 items, full chain, Mac Core ML CPU_ONLY, af_heart"
+        },
         "speed": {
           "gate_median_rtf_max": 0.3,
-          "source": "benchmark/results/size-s014-m8-speed.json",
+          "source": "benchmark/results/size-s018-speed-50mb.json",
           "median_rtf": {
-            "3s": 0.173,
-            "7s": 0.181,
-            "15s": 0.189,
-            "30s": 0.197
+            "3s": 0.184,
+            "7s": 0.193,
+            "15s": 0.195,
+            "30s": 0.21
           },
           "p90_rtf": {
-            "3s": 0.175,
-            "7s": 0.184,
-            "15s": 0.193,
-            "30s": 0.204
+            "3s": 0.186,
+            "7s": 0.195,
+            "15s": 0.196,
+            "30s": 0.215
           },
           "thermal_state": {
             "3s": "nominal",
-            "7s": "nominal",
-            "15s": "nominal",
+            "7s": "fair",
+            "15s": "fair",
             "30s": "serious"
           },
           "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
-          "result": "passed"
+          "result": "passed",
+          "student": "S018",
+          "hash_check": {
+            "source": "benchmark/results/size-s018-hash-50mb.json",
+            "case": "3s",
+            "sha256": "c3544bb0b62b1f11cb713ecd2e615481aa323120373190a428ee616e403f9d39",
+            "note": "3s waveform SHA-256 on device with the S018 build"
+          },
+          "note": "Generator on .cpuAndGPU, as in the S014 harness."
         },
         "sound": {
-          "source": "benchmark/results/size-s014-m8-listen.json",
-          "test": "4 four-length pairs plus 8 hidden-sentence pairs, blind, vs reference Kokoro af_heart",
+          "sources": [
+            "benchmark/results/size-s018-50mb-listen-s018-50mb.json",
+            "benchmark/results/size-s018-50mb-listen-s018-50mb-four.json"
+          ],
           "pairs": 12,
           "ties": 12,
-          "reference_preferred": 0,
           "candidate_preferred": 0,
-          "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)",
-          "note": "The 12 ties were the 4 four-length pairs plus 8 hidden-sentence pairs."
+          "reference_preferred": 0,
+          "test": "8 short hidden sentences plus the four-length pairs (3, 7, 15, 30 s), blind, one listener (the project author), randomized sides, vs reference Kokoro af_heart",
+          "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)"
         },
         "stability": {
-          "result": "not run: the 60-minute loop was made optional on 2026-10-16 and is not a gate"
+          "result": "not run: the 60-minute loop is not a gate"
         },
-        "mac_15_item_vocoder_isolation_dtw_db": {
-          "text": "1.771 dB (S014 mixed8 voc arm, given fp32 F0) and 1.862 dB (full chain with int8 pitch), 15 items vs fp32 Kokoro",
-          "source": "docs/EXPERIMENT_LOG.md (S015 comparison tables)"
+        "retraining_recipe": {
+          "doc": "docs/README_RETRAIN.md (GitHub repository qmohitsingh/kokoro-82m-coreml-size-tiers)",
+          "scripts": "scripts/s018_*.py (GitHub repository)"
         },
-        "harness_app_size": "Release unsigned .app 46,107,717 bytes (S014 mixed8 log) (recorded, not graded)"
+        "previous_version": {
+          "student": "S017",
+          "huggingface_commit": "e7ed75f144376a2d11377cb8af706c3c54b0b0f6",
+          "note": "The S017 student stays reachable through this Hugging Face commit and the GitHub history."
+        },
+        "previous_student": {
+          "student": "S014 mixed8 (same student as S017)",
+          "speed": {
+            "gate_median_rtf_max": 0.3,
+            "source": "benchmark/results/size-s014-m8-speed.json",
+            "median_rtf": {
+              "3s": 0.173,
+              "7s": 0.181,
+              "15s": 0.189,
+              "30s": 0.197
+            },
+            "p90_rtf": {
+              "3s": 0.175,
+              "7s": 0.184,
+              "15s": 0.193,
+              "30s": 0.204
+            },
+            "thermal_state": {
+              "3s": "nominal",
+              "7s": "nominal",
+              "15s": "nominal",
+              "30s": "serious"
+            },
+            "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
+            "result": "passed"
+          },
+          "sound": {
+            "source": "benchmark/results/size-s014-m8-listen.json",
+            "test": "4 four-length pairs plus 8 hidden-sentence pairs, blind, vs reference Kokoro af_heart",
+            "pairs": 12,
+            "ties": 12,
+            "reference_preferred": 0,
+            "candidate_preferred": 0,
+            "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)",
+            "note": "The 12 ties were the 4 four-length pairs plus 8 hidden-sentence pairs."
+          },
+          "stability": {
+            "result": "not run: the 60-minute loop was made optional on 2026-10-16 and is not a gate"
+          },
+          "mac_15_item_vocoder_isolation_dtw_db": {
+            "text": "1.771 dB (S014 mixed8 vocoder-only comparison, given fp32 F0) and 1.862 dB (full chain with int8 pitch), 15 items vs fp32 Kokoro",
+            "source": "docs/EXPERIMENT_LOG.md (S015 comparison tables)"
+          }
+        },
+        "harness_app_size": "Release unsigned .app 46,109,104 bytes (verify_build.py, S018 student) (recorded, not graded)"
       },
       "harness": {
         "project_spec": "benchmark/ios/project-s014.yml",
@@ -4547,21 +4638,21 @@
     "25mb": {
       "tier": "25mb",
       "label": "Ultra (at most 25 MB)",
-      "experiment": "S017",
+      "experiment": "S018",
       "status": "passed",
       "shapes": "flexible",
       "shape_note": "Flexible token length (1 to 512 tokens) and frame length: the packages accept any length in range, so arbitrary sentences work once phoneme ids are supplied.",
       "recommended": true,
-      "recipe": "S014 width-256 student, Kokoro int8 flexible pitch, pruned and distilled student vocoder (int8). The vocoder runs CPU-only.",
+      "recipe": "S018 width-256 student (fine-tuned from the S014 student), Kokoro int8 flexible pitch, pruned and distilled student vocoder (int8). The vocoder runs CPU-only.",
       "size_measurement": "compiled_logical_bytes = sum of file sizes (os.stat st_size) of the .mlmodelc that `xcrun coremlcompiler compile` produces from the package, the same bytes Xcode puts in the app. package_sha256 = sha256 over every file sorted by relative path: relative path bytes then file bytes. coremldata.bin inside a compile can differ by a few bytes between runs.",
       "packages": [
         {
           "name": "kokoro_student_w256",
           "path": "kokoro_student_w256.mlpackage",
-          "role": "width-256 student replacing text body and duration path",
-          "compiled_logical_bytes": 6076253,
-          "package_logical_bytes": 6068613,
-          "package_sha256": "e9bd7b645cdd3511552e7c0a1d4ff4b79234ef586b69c93db6f25e596775b758",
+          "role": "width-256 student (S018) replacing text body and duration path",
+          "compiled_logical_bytes": 6076256,
+          "package_logical_bytes": 6068615,
+          "package_sha256": "fce37c3e7be06355c4d657703994652ee49dc5f2db18d4970a01c90f78d7f73a",
           "compute_units": "all",
           "inputs": [
             {
@@ -4611,18 +4702,18 @@
           "files": [
             {
               "path": "Data/com.apple.CoreML/model.mlmodel",
-              "bytes": 57500,
-              "sha256": "78b79c3eaa859838d1772f064b609b8e575bb0d68584304607e3162f96b9b158"
+              "bytes": 57502,
+              "sha256": "832953707e9d316874f8bffd7b63992a96013c5d8d26b6060804d73cd92d43de"
             },
             {
               "path": "Data/com.apple.CoreML/weights/weight.bin",
               "bytes": 6010496,
-              "sha256": "f6c199cb979d9d34300ae6a388e3eae81d78f84865d92e4c07b27329eb61ddf2"
+              "sha256": "1148be2a67e6c1ef41c8d35e3ee5530cc46a82d0ca2a021e93def29c7846cf16"
             },
             {
               "path": "Manifest.json",
               "bytes": 617,
-              "sha256": "9804d852f1992a27ce004a5ef199d43012ff4d1e4f5dfc4ff2ae1d54c48b3482"
+              "sha256": "5f5da66a768b24787f30a6775e70e49d86f7c11973173a48390fc6fab5066bd7"
             }
           ]
         },
@@ -4700,7 +4791,7 @@
         {
           "name": "kokoro_s015_vocoder_int8",
           "path": "kokoro_s015_vocoder_int8.mlpackage",
-          "role": "v4-prune student vocoder, int8, flexible length",
+          "role": "S015 pruned and distilled student vocoder, int8, flexible length",
           "compiled_logical_bytes": 9569102,
           "package_logical_bytes": 9540035,
           "package_sha256": "4c004ca4321630593e14e60cfc184f9ec135727926991ada32b89feb5689e3be",
@@ -4828,98 +4919,189 @@
           ]
         }
       ],
-      "compiled_models_total_bytes": 24267607,
+      "compiled_models_total_bytes": 24267610,
       "voice": {
         "file": "af_heart_f32.bin",
         "bytes": 522240,
         "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
         "layout": "510 x 256 little-endian float32 (af_heart[510,1,256] squeezed); the harness reads the row for the token count. Identical to the harness's bundled af_heart.bin."
       },
-      "models_plus_voice_bytes": 24789847,
+      "models_plus_voice_bytes": 24789850,
       "bench_input": {
         "file": "benchmark/inputs/bench-s017.json (GitHub repository)",
         "sha256": "976e38751ecc887455c1cad724d32d34cb4d51461955bb92821f1d53c297d589"
       },
       "metrics": {
+        "intelligibility_wer_af_heart": {
+          "voice": "af_heart",
+          "tool": "whisper.cpp ggml-medium.en; WER against the input text, lowercased, no punctuation",
+          "chain": "25mb chain, Mac Core ML CPU_ONLY, speed 1.0, same token ids and style rows for every arm",
+          "heldout": {
+            "source": "benchmark/results/size-s018-score-heldout-25mb.json",
+            "words": 751,
+            "reference_wer_pct": 2.93,
+            "s017_student_wer_pct": 19.57,
+            "s018_student_wer_pct": 3.86,
+            "s018_minus_reference_points": 0.93,
+            "repeat_word_violations": 0
+          },
+          "neutral_ab": {
+            "source": "benchmark/results/size-s018-score-abn-25mb.json",
+            "words": 135,
+            "reference_wer_pct": 1.48,
+            "s017_student_wer_pct": 20.0,
+            "s018_student_wer_pct": 0.74,
+            "s018_minus_reference_points": -0.74,
+            "repeat_word_violations": 0
+          },
+          "result": "passed (gate: within 1 percentage point of the reference on the same set and voice, and no word the reference says correctly fails in more than one sentence)"
+        },
+        "objective_dtw_log_mel_db": {
+          "source": "benchmark/results/size-s018-dtw-25mb.json",
+          "s018_mean_db": 2.576,
+          "s017_mean_db": 1.787,
+          "difference_db": 0.789,
+          "result": "worse than S017 by 0.789 dB; recorded, not a gate",
+          "scope": "15 items, full chain, Mac Core ML CPU_ONLY, af_heart"
+        },
         "speed": {
           "gate_median_rtf_max": 0.3,
-          "source": "benchmark/results/size-s017-speed.json",
+          "source": "benchmark/results/size-s018-speed-25mb.json",
           "median_rtf": {
-            "3s": 0.06,
-            "7s": 0.072,
-            "15s": 0.096,
-            "30s": 0.109
+            "3s": 0.062,
+            "7s": 0.073,
+            "15s": 0.092,
+            "30s": 0.103
           },
           "p90_rtf": {
-            "3s": 0.062,
+            "3s": 0.063,
             "7s": 0.074,
-            "15s": 0.101,
-            "30s": 0.111
+            "15s": 0.094,
+            "30s": 0.103
           },
           "thermal_state": {
-            "3s": "serious",
-            "7s": "serious",
-            "15s": "serious",
-            "30s": "serious"
+            "3s": "nominal",
+            "7s": "nominal",
+            "15s": "nominal",
+            "30s": "nominal"
           },
           "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
           "result": "passed",
-          "note": "Vocoder CPU-only; thermal state serious. Result JSON keeps the old key sampleCountMatched."
+          "student": "S018",
+          "hash_check": {
+            "source": "benchmark/results/size-s018-hash-25mb.json",
+            "case": "3s",
+            "sha256": "ad350c48eeb4f519a276576548b96ae62cce945dc1654e126412bd36fb3bcaf2",
+            "note": "3s waveform SHA-256 on device with the S018 build"
+          },
+          "note": "Vocoder CPU-only."
         },
         "sound": {
-          "source": "benchmark/results/size-s017-listen.json, benchmark/results/size-s017-listen-four.json",
           "sources": [
-            {
-              "source": "benchmark/results/size-s017-listen.json",
-              "test": "hidden-sentence session 2 (8 unseen sentences, 2 to 4 s clips, randomized sides, play-to-end gate); session 1 in the same file (listenerIndex 0) had no play-to-end gate and is not counted",
-              "listener": "listener-1",
-              "pairs": 8,
-              "ties": 8,
-              "candidate_preferred": 0,
-              "reference_preferred": 0
-            },
-            {
-              "source": "benchmark/results/size-s017-listen-four.json",
-              "test": "four-length blind pairs (3, 7, 15, 30 s) vs the original Kokoro af_heart reference wavs, randomized sides, play-to-end gate",
-              "listener": "listener-1",
-              "pairs": 4,
-              "ties": 3,
-              "candidate_preferred": 1,
-              "reference_preferred": 0
-            },
-            {
-              "source": "benchmark/results/size-s017-listen-four.json",
-              "test": "four-length blind pairs (3, 7, 15, 30 s) vs the original Kokoro af_heart reference wavs, randomized sides, play-to-end gate",
-              "listener": "listener-2",
-              "pairs": 4,
-              "ties": 0,
-              "candidate_preferred": 3,
-              "reference_preferred": 1
-            }
+            "benchmark/results/size-s018-25mb-listen-s018.json",
+            "benchmark/results/size-s018-25mb-listen-s018-four.json"
           ],
-          "pairs": 16,
-          "ties": 11,
-          "candidate_preferred": 4,
-          "reference_preferred": 1,
-          "listener": "two listeners: listener-1 (the project author) ran the counted hidden-sentence session and the four-length test; listener-2 ran the four-length test only",
-          "result": "accepted by owner judgement (written rule: passes unless the listener prefers the reference; ties count for neither)",
-          "scope_note": "listener-1: 12 pairs, 11 ties, 1 S017 preference, 0 reference preferences, so the written rule passes. listener-2 (four lengths): 3 S017 preferences and 1 reference preference (15 s). Under the strict written rule that session has one reference preference; the owner judges this acceptable because the smaller model was preferred in 3 of 4 pairs. listener-1 is the project author; the test was blind but not independent, and the author judged listener-2's single reference preference acceptable."
+          "pairs": 12,
+          "ties": 12,
+          "candidate_preferred": 0,
+          "reference_preferred": 0,
+          "test": "8 short hidden sentences plus the four-length pairs (3, 7, 15, 30 s), blind, one listener (the project author), randomized sides, vs reference Kokoro af_heart",
+          "result": "passed (rule: passes unless the listener prefers the reference; ties count for neither)"
         },
         "stability": {
           "result": "not run: the 60-minute loop is not a gate"
         },
-        "objective_dtw_log_mel_db": {
-          "source": "benchmark/results/size-s017-eval.json",
-          "mean": 1.787,
-          "gate_db": 1.86,
-          "result": "pass",
-          "scope": "full shipped chain, 15 items, Mac Core ML CPU_ONLY; the phone runs student and pitch on .all"
+        "retraining_recipe": {
+          "doc": "docs/README_RETRAIN.md (GitHub repository qmohitsingh/kokoro-82m-coreml-size-tiers)",
+          "scripts": "scripts/s018_*.py (GitHub repository)"
         },
-        "hash_check": {
-          "source": "benchmark/results/size-s017-hash.json",
-          "note": "3s waveform SHA-256 re-checked on device after the last harness change"
+        "previous_version": {
+          "student": "S017",
+          "huggingface_commit": "e7ed75f144376a2d11377cb8af706c3c54b0b0f6",
+          "note": "The S017 student stays reachable through this Hugging Face commit and the GitHub history."
         },
-        "harness_app_size": "Release unsigned .app 24,976,568 bytes (recorded, not graded)"
+        "previous_student": {
+          "student": "S017",
+          "speed": {
+            "gate_median_rtf_max": 0.3,
+            "source": "benchmark/results/size-s017-speed.json",
+            "median_rtf": {
+              "3s": 0.06,
+              "7s": 0.072,
+              "15s": 0.096,
+              "30s": 0.109
+            },
+            "p90_rtf": {
+              "3s": 0.062,
+              "7s": 0.074,
+              "15s": 0.101,
+              "30s": 0.111
+            },
+            "thermal_state": {
+              "3s": "serious",
+              "7s": "serious",
+              "15s": "serious",
+              "30s": "serious"
+            },
+            "protocol": "iPhone 12, Release, 2 warm-ups discarded, median of 10 per length",
+            "result": "passed",
+            "note": "Vocoder CPU-only; thermal state serious. Result JSON keeps the old key sampleCountMatched."
+          },
+          "sound": {
+            "source": "benchmark/results/size-s017-listen.json, benchmark/results/size-s017-listen-four.json",
+            "sources": [
+              {
+                "source": "benchmark/results/size-s017-listen.json",
+                "test": "hidden-sentence session 2 (8 unseen sentences, 2 to 4 s clips, randomized sides, play-to-end gate); session 1 in the same file (listenerIndex 0) had no play-to-end gate and is not counted",
+                "listener": "listener-1",
+                "pairs": 8,
+                "ties": 8,
+                "candidate_preferred": 0,
+                "reference_preferred": 0
+              },
+              {
+                "source": "benchmark/results/size-s017-listen-four.json",
+                "test": "four-length blind pairs (3, 7, 15, 30 s) vs the original Kokoro af_heart reference wavs, randomized sides, play-to-end gate",
+                "listener": "listener-1",
+                "pairs": 4,
+                "ties": 3,
+                "candidate_preferred": 1,
+                "reference_preferred": 0
+              },
+              {
+                "source": "benchmark/results/size-s017-listen-four.json",
+                "test": "four-length blind pairs (3, 7, 15, 30 s) vs the original Kokoro af_heart reference wavs, randomized sides, play-to-end gate",
+                "listener": "listener-2",
+                "pairs": 4,
+                "ties": 0,
+                "candidate_preferred": 3,
+                "reference_preferred": 1
+              }
+            ],
+            "pairs": 16,
+            "ties": 11,
+            "candidate_preferred": 4,
+            "reference_preferred": 1,
+            "listener": "two listeners: listener-1 (the project author) ran the counted hidden-sentence session and the four-length test; listener-2 ran the four-length test only",
+            "result": "accepted by the author's judgment (written rule: passes unless the listener prefers the reference; ties count for neither)",
+            "scope_note": "listener-1: 12 pairs, 11 ties, 1 S017 preference, 0 reference preferences, so the written rule passes. listener-2 (four lengths): 3 S017 preferences and 1 reference preference (15 s). Under the strict written rule that session has one reference preference; the author judges this acceptable because the smaller model was preferred in 3 of 4 pairs. Listener-1 is the project author; the test was blind but not independent, and the author judged listener-2's single reference preference acceptable."
+          },
+          "stability": {
+            "result": "not run: the 60-minute loop is not a gate"
+          },
+          "objective_dtw_log_mel_db": {
+            "source": "benchmark/results/size-s017-eval.json",
+            "mean": 1.787,
+            "gate_db": 1.86,
+            "result": "pass",
+            "scope": "full shipped chain, 15 items, Mac Core ML CPU_ONLY; the phone runs student and pitch on .all"
+          },
+          "hash_check": {
+            "source": "benchmark/results/size-s017-hash.json",
+            "note": "3s waveform SHA-256 re-checked on device after the last harness change"
+          }
+        },
+        "harness_app_size": "Release unsigned .app 24,976,571 bytes (recorded, not graded)"
       },
       "harness": {
         "project_spec": "benchmark/ios/project-s017.yml",
