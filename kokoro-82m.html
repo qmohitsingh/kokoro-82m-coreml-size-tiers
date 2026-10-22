@@ -275,7 +275,7 @@ const STAGES = [{"id":"g2p","title":"Text to Phoneme IDs","difficulty":"Medium",
   var pad = function (i) { return (i < 9 ? '0' : '') + (i + 1); };
   var fmt = function (v) { return v === null || v === undefined || v === '' ? NR : (typeof v === 'number' ? v.toLocaleString('en-US') : String(v)); };
   var NCHAIN = STAGES.length;
-  var URL25 = "";
+  var URL25 = "kokoro-25mb.html";
   var cur = 0, tab = 'pseudo';
   try { var t = localStorage.getItem('kdd-tab'); if (t === 'pseudo' || t === 'real') tab = t; } catch (e) {}
 
